@@ -1,0 +1,227 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
+  AreaChart, Area, PieChart, Pie, Cell 
+} from 'recharts';
+import { DollarSign, Clock, CheckCircle, TrendingUp, TrendingDown, PieChart as PieChartIcon } from 'lucide-react';
+import { API_URL } from '../config';
+
+const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444'];
+
+const Dashboard: React.FC<{ user: any }> = ({ user }) => {
+  const [purchases, setPurchases] = useState<any[]>([]);
+  const [budgets, setBudgets] = useState<any[]>([]);
+  const [monthlyData, setMonthlyData] = useState<any[]>([]);
+
+  useEffect(() => {
+    const sharedSectors = ['Marketing', 'Comercial', 'Eventos'];
+    const isSharedUser = ['Grazi', 'Esther', 'Ramon'].includes(user.name);
+    const isAfonso = user.name === 'Afonso';
+    const afonsoSectors = ['Marketing', 'Comercial', 'Eventos', 'TI', 'RH', 'Financeiro', 'Jurídico', 'Diretoria'];
+
+    fetch(`${API_URL}/purchases`)
+      .then(res => res.json())
+      .then(data => {
+        if (user.role === 'FINANCE' || user.role === 'ADMIN') {
+          setPurchases(data);
+        } else if (isSharedUser) {
+          setPurchases(data.filter((p: any) => sharedSectors.includes(p.sector)));
+        } else if (isAfonso) {
+          setPurchases(data.filter((p: any) => afonsoSectors.includes(p.sector)));
+        } else {
+          setPurchases(data.filter((p: any) => p.sector === user.sector));
+        }
+      });
+
+    fetch(`${API_URL}/budgets`)
+      .then(res => res.json())
+      .then(data => {
+        if (user.role === 'FINANCE' || user.role === 'ADMIN') {
+          setBudgets(data);
+        } else if (isSharedUser) {
+          setBudgets(data.filter((b: any) => sharedSectors.includes(b.sector)));
+        } else {
+          setBudgets(data.filter((b: any) => b.sector === user.sector));
+        }
+      });
+
+    fetch(`${API_URL}/stats/monthly`)
+      .then(res => res.json())
+      .then(data => setMonthlyData(data));
+  }, [user]);
+
+  const totalSpent = budgets.reduce((acc, curr) => acc + curr.spent, 0);
+  const totalAllocated = budgets.reduce((acc, curr) => acc + curr.allocated, 0);
+
+  const sectorPieData = budgets.map(b => ({
+    name: b.sector,
+    value: b.spent
+  })).filter(b => b.value > 0);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      {/* Stats Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px' }}>
+        {user.name !== 'Afonso' && (
+          <StatCard 
+            title="Gasto Total" 
+            value={`R$ ${totalSpent.toLocaleString()}`} 
+            trend="+12%" 
+            trendUp={false} 
+            icon={<DollarSign size={20} />} 
+            color="#6366f1"
+          />
+        )}
+        <StatCard 
+          title="Pendentes" 
+          value={purchases.filter(p => p.status === 'PENDING').length.toString()} 
+          trend="Aguardando" 
+          icon={<Clock size={20} />} 
+          color="#f59e0b"
+        />
+        {user.name !== 'Afonso' && (
+          <StatCard 
+            title="Budget Restante" 
+            value={`R$ ${(totalAllocated - totalSpent).toLocaleString()}`} 
+            trend="-5%" 
+            trendUp={false} 
+            icon={<CheckCircle size={20} />} 
+            color="#10b981"
+          />
+        )}
+      </div>
+
+      {/* Charts Row */}
+      {(user.role === 'FINANCE' || user.role === 'ADMIN') ? (
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
+          <div className="card">
+            <h3 style={{ marginBottom: '20px' }}>Evolução Mensal: Budget vs Realizado</h3>
+            <div style={{ height: '300px' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={monthlyData}>
+                  <defs>
+                    <linearGradient id="colorBudget" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.1}/>
+                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="colorSpent" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.1}/>
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                  <XAxis dataKey="month" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `R$ ${value/1000}k`} />
+                  <Tooltip 
+                    contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }}
+                  />
+                  <Area type="monotone" dataKey="budget" name="Orçado" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorBudget)" />
+                  <Area type="monotone" dataKey="spent" name="Realizado" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorSpent)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div className="card">
+            <h3 style={{ marginBottom: '20px' }}>Gastos por Setor</h3>
+            <div style={{ height: '300px' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={sectorPieData.length > 0 ? sectorPieData : [{ name: 'Sem gastos', value: 1 }]}
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {sectorPieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                    {sectorPieData.length === 0 && <Cell fill="rgba(255,255,255,0.05)" />}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="card" style={{ padding: '40px', textAlign: 'center', background: 'rgba(99, 102, 241, 0.05)' }}>
+          <DollarSign size={48} style={{ color: 'var(--primary)', marginBottom: '16px', opacity: 0.5 }} />
+          <h3>Seu Orçamento do Setor</h3>
+          <p style={{ color: 'var(--text-muted)' }}>Você tem acesso total às solicitações e ao budget do seu setor (**{user.sector}**).</p>
+        </div>
+      )}
+
+      {/* Recent Activity */}
+      <div className="card">
+        <h3 style={{ marginBottom: '20px' }}>Solicitações Recentes</h3>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ textAlign: 'left', color: 'var(--text-muted)', fontSize: '14px', borderBottom: '1px solid var(--border)' }}>
+              <th style={{ padding: '12px 0' }}>Produto</th>
+              <th>Setor</th>
+              <th>Valor</th>
+              <th>Status</th>
+              <th>Data</th>
+            </tr>
+          </thead>
+          <tbody>
+            {purchases.slice(0, 5).map(row => (
+              <tr key={row.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '14px' }}>
+                <td style={{ padding: '16px 0', fontWeight: '500' }}>{row.productName}</td>
+                <td>{row.sector}</td>
+                <td>R$ {parseFloat(row.amount).toLocaleString()}</td>
+                <td>
+                  <span style={{ 
+                    padding: '4px 8px', 
+                    borderRadius: '4px', 
+                    fontSize: '12px',
+                    background: row.status === 'APPROVED' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+                    color: row.status === 'APPROVED' ? '#10b981' : '#f59e0b'
+                  }}>
+                    {row.status}
+                  </span>
+                </td>
+                <td style={{ color: 'var(--text-muted)' }}>{new Date(row.createdAt).toLocaleDateString()}</td>
+              </tr>
+            ))}
+            {purchases.length === 0 && (
+              <tr>
+                <td colSpan={5} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+                  Nenhuma solicitação encontrada.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+const StatCard: React.FC<{ title: string, value: string, trend: string, trendUp?: boolean, icon: React.ReactNode, color: string }> = ({ title, value, trend, trendUp, icon, color }) => (
+  <div className="card" style={{ position: 'relative', overflow: 'hidden' }}>
+    <div style={{ 
+      position: 'absolute', 
+      top: '0', 
+      right: '0', 
+      width: '60px', 
+      height: '60px', 
+      background: color, 
+      opacity: 0.1, 
+      borderRadius: '0 0 0 100%' 
+    }}></div>
+    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+      <div style={{ color: 'var(--text-muted)', fontSize: '14px' }}>{title}</div>
+      <div style={{ color }}>{icon}</div>
+    </div>
+    <div style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>{value}</div>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px' }}>
+      <span style={{ color: trendUp ? 'var(--success)' : 'var(--text-muted)' }}>{trend}</span>
+      {trendUp !== undefined && (trendUp ? <TrendingUp size={14} /> : <TrendingDown size={14} />)}
+    </div>
+  </div>
+);
+
+export default Dashboard;

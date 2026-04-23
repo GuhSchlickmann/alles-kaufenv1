@@ -1,0 +1,62 @@
+{
+  "name": "purchase-budget-system",
+  "private": true,
+  "version": "1.0.0",
+  "main": "electron-main.cjs",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "server": "node server.cjs",
+    "start": "concurrently \"npm run dev\" \"node server.cjs\"",
+    "build": "vite build",
+    "electron": "electron .",
+    "dist": "npm run build && electron-builder",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@lottiefiles/dotlottie-react": "^0.19.0",
+    "concurrently": "^9.2.1",
+    "cors": "^2.8.6",
+    "date-fns": "^4.1.0",
+    "express": "^5.2.1",
+    "framer-motion": "^12.38.0",
+    "knex": "^3.2.9",
+    "lucide-react": "^1.9.0",
+    "pg": "^8.20.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "recharts": "^3.8.1",
+    "sqlite3": "^6.0.1",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.12.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "electron": "^41.3.0",
+    "electron-builder": "^26.8.1",
+    "eslint": "^10.2.1",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.5.0",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.58.2",
+    "vite": "^8.0.10"
+  },
+  "build": {
+    "appId": "com.alleskaufen.app",
+    "productName": "Alles Kaufen",
+    "win": {
+      "target": "portable",
+      "icon": "public/favicon.ico"
+    },
+    "files": [
+      "electron-main.cjs",
+      "public/**/*"
+    ],
+    "asar": true
+  }
+}

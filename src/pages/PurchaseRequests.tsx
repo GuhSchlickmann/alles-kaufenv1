@@ -60,14 +60,18 @@ const PurchaseRequests: React.FC<{
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const payload = {
+      ...formData,
+      amount: parseFloat(formData.amount),
+      requestedBy: user.name,
+      productLink: formData.productLink // Forçando explicitamente aqui
+    };
+    console.log("Enviando solicitação:", payload);
+
     await fetch(`${API_URL}/purchases`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ...formData,
-        amount: parseFloat(formData.amount),
-        requestedBy: user.name
-      })
+      body: JSON.stringify(payload)
     });
     setShowNewRequest(false);
     fetchData();
@@ -203,7 +207,7 @@ const PurchaseRequests: React.FC<{
                     )}
                   </div>
                   <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                    ID: #{req.id} • {req.paymentMethod} • Criado em: {format(new Date(req.createdAt), 'dd/MM/yy HH:mm')}
+                    ID: #{req.id} • {req.paymentMethod} • Criado em: {format(new Date(new Date(req.createdAt).getTime() - 3 * 3600 * 1000), 'dd/MM/yy HH:mm')}
                   </div>
                   {req.rejectionReason && (
                     <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px', fontStyle: 'italic' }}>
@@ -494,7 +498,7 @@ const PurchaseRequests: React.FC<{
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div>
                   <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Data Solicitação</div>
-                  <div style={{ fontWeight: '600' }}>{format(new Date(showDetails.createdAt), 'dd/MM/yyyy HH:mm')}</div>
+                  <div style={{ fontWeight: '600' }}>{format(new Date(new Date(showDetails.createdAt).getTime() - 3 * 3600 * 1000), 'dd/MM/yyyy HH:mm')}</div>
                 </div>
                 {showDetails.productLink && (
                   <div>

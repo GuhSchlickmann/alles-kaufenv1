@@ -50,8 +50,8 @@ const Dashboard: React.FC<{ user: any }> = ({ user }) => {
       .then(data => setMonthlyData(data));
   }, [user]);
 
-  const totalSpent = budgets.reduce((acc, curr) => acc + curr.spent, 0);
-  const totalAllocated = budgets.reduce((acc, curr) => acc + curr.allocated, 0);
+  const totalSpent = budgets.reduce((acc, curr) => acc + parseFloat(curr.spent || 0), 0);
+  const totalAllocated = budgets.reduce((acc, curr) => acc + parseFloat(curr.allocated || 0), 0);
 
   const sectorPieData = budgets.map(b => ({
     name: b.sector,
@@ -65,7 +65,7 @@ const Dashboard: React.FC<{ user: any }> = ({ user }) => {
         {user.name !== 'Afonso' && (
           <StatCard 
             title="Gasto Total" 
-            value={`R$ ${totalSpent.toLocaleString()}`} 
+            value={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalSpent)} 
             trend="+12%" 
             trendUp={false} 
             icon={<DollarSign size={20} />} 
@@ -82,7 +82,7 @@ const Dashboard: React.FC<{ user: any }> = ({ user }) => {
         {user.name !== 'Afonso' && (
           <StatCard 
             title="Budget Restante" 
-            value={`R$ ${(totalAllocated - totalSpent).toLocaleString()}`} 
+            value={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalAllocated - totalSpent)} 
             trend="-5%" 
             trendUp={false} 
             icon={<CheckCircle size={20} />} 

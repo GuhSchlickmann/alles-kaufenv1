@@ -189,10 +189,20 @@ app.patch('/api/purchases/:id/status', async (req, res) => {
 
 app.get('/api/stats/monthly', async (req, res) => {
   const monthOrder = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+  
+  // Pega a soma total de todos os budgets dos setores
+  const totalAllocatedResult = await knex('budgets').sum('allocated as total');
+  const totalAllocated = parseFloat(totalAllocatedResult[0].total || 0);
+
   const stats = await knex('monthly_budgets').select('*');
   
-  // Ordena os meses corretamente
-  const sortedStats = stats.sort((a, b) => monthOrder.indexOf(a.month) - monthOrder.indexOf(b.month));
+  // Ordena e injeta o budget real calculado
+  const sortedStats = stats
+    .sort((a, b) => monthOrder.indexOf(a.month) - monthOrder.indexOf(b.month))
+    .map(s => ({
+      ...s,
+      allocated: totalAllocated // Usa o valor real dos setores
+    }));
   
   res.json(sortedStats);
 });

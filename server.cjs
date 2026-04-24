@@ -188,8 +188,13 @@ app.patch('/api/purchases/:id/status', async (req, res) => {
 });
 
 app.get('/api/stats/monthly', async (req, res) => {
+  const monthOrder = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
   const stats = await knex('monthly_budgets').select('*');
-  res.json(stats);
+  
+  // Ordena os meses corretamente
+  const sortedStats = stats.sort((a, b) => monthOrder.indexOf(a.month) - monthOrder.indexOf(b.month));
+  
+  res.json(sortedStats);
 });
 
 app.post('/api/users/change-password', async (req, res) => {

@@ -147,18 +147,16 @@ app.get('/api/purchases', async (req, res) => {
 });
 
 app.post('/api/purchases', async (req, res) => {
+  console.log("--- NOVA SOLICITAÇÃO RECEBIDA ---");
+  console.log("Body:", JSON.stringify(req.body, null, 2));
+  
   const { productName, description, amount, sector, requestedBy, paymentMethod, dueDate, productLink } = req.body;
   
-  // Basic Business Rule Check
-  const dayOfMonth = new Date().getDate();
-  if (dayOfMonth >= 25) {
-    console.log("ALERTA: Compra solicitada após o dia 25.");
-  }
-
   const [id] = await knex('purchases').insert({
     productName, description, amount, sector, requestedBy, paymentMethod, dueDate, productLink
   });
 
+  console.log("SALVO COM SUCESSO. ID:", id);
   res.json({ id, status: 'PENDING' });
 });
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Filter, Search, Plus, AlertCircle, FileText, Download, Link as LinkIcon, Trash2, Check, X } from 'lucide-react';
+import { Filter, Search, Plus, AlertCircle, FileText, Download, ExternalLink, Link as LinkIcon, Trash2, Check, X } from 'lucide-react';
 import { format, getDate } from 'date-fns';
 import * as XLSX from 'xlsx';
 import { API_URL } from '../config';
@@ -187,8 +187,21 @@ const PurchaseRequests: React.FC<{
               )
               .map(req => (
                 <tr key={req.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '14px' }}>
-                <td style={{ padding: '20px 24px' }}>
-                  <div style={{ fontWeight: '600' }}>{req.productName}</div>
+                <td style={{ padding: '16px 12px' }}>
+                  <div style={{ fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {req.productName}
+                    {req.productLink && (
+                      <a 
+                        href={req.productLink} 
+                        target="_blank" 
+                        rel="noreferrer" 
+                        style={{ color: 'var(--primary)', display: 'flex' }}
+                        title="Abrir link do produto"
+                      >
+                        <ExternalLink size={14} />
+                      </a>
+                    )}
+                  </div>
                   <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>ID: #{req.id} • {req.paymentMethod}</div>
                   {req.rejectionReason && (
                     <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px', fontStyle: 'italic' }}>

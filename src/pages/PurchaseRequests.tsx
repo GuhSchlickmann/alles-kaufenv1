@@ -15,6 +15,7 @@ const PurchaseRequests: React.FC<{
   const [showDetails, setShowDetails] = useState<any>(null);
   const [rejectId, setRejectId] = useState<number | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
+  const [availableSectors, setAvailableSectors] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     productName: '',
     productLink: '',
@@ -54,6 +55,10 @@ const PurchaseRequests: React.FC<{
 
   useEffect(() => {
     fetchData();
+    // Busca os setores cadastrados no banco
+    fetch(`${API_URL}/budgets`)
+      .then(res => res.json())
+      .then(data => setAvailableSectors(data));
   }, [user]);
 
   const isLateInMonth = getDate(new Date()) >= 25;
@@ -355,16 +360,9 @@ const PurchaseRequests: React.FC<{
                         <option value="Estação">Estação</option>
                       </>
                     ) : (
-                      <>
-                        <option value="Operação">Operação</option>
-                        <option value="Manutenção">Manutenção</option>
-                        <option value="Financeiro">Financeiro</option>
-                        <option value="Bilheteria">Bilheteria</option>
-                        <option value="Marketing">Marketing</option>
-                        <option value="Comercial">Comercial</option>
-                        <option value="Eventos">Eventos</option>
-                        <option value="Estação">Estação</option>
-                      </>
+                      availableSectors.map(s => (
+                        <option key={s.sector} value={s.sector}>{s.sector}</option>
+                      ))
                     )}
                   </select>
                 </div>

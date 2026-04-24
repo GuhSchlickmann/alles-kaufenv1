@@ -119,6 +119,18 @@ async function initDb() {
       spent: 0 
     })));
   }
+
+  const hasNotifications = await knex.schema.hasTable('notifications');
+  if (!hasNotifications) {
+    await knex.schema.createTable('notifications', (table) => {
+      table.increments('id').primary();
+      table.string('user').notNullable(); // Quem vai receber
+      table.string('title').notNullable();
+      table.string('message').notNullable();
+      table.boolean('read').defaultTo(false);
+      table.timestamp('createdAt').defaultTo(knex.fn.now());
+    });
+  }
 }
 
 initDb();
@@ -156,6 +168,16 @@ app.post('/api/purchases', async (req, res) => {
     productName, description, amount, sector, requestedBy, paymentMethod, dueDate, productLink
   });
 
+  // Notificar FINANCE e ADMIN sobre nova solicitação
+  const admins = await knex('users').whereIn('role', ['ADMIN', 'FINANCE']).select('username');
+  for (const admin of admins) {
+    await knex('notifications').insert({
+      user: admin.username,
+      title: 'Nova Solicitação',
+      message: `${requestedBy} solicitou ${productName} (R$ ${amount.toLocaleString()})`
+    });
+  }
+
   console.log("SALVO COM SUCESSO. ID:", id);
   res.json({ id, status: 'PENDING' });
 });
@@ -182,6 +204,20 @@ app.patch('/api/purchases/:id/status', async (req, res) => {
     const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
     const currentMonth = monthNames[new Date().getMonth()];
     await knex('monthly_budgets').where({ month: currentMonth }).increment('spent', purchase.amount);
+    
+    // Notificar solicitante sobre aprovação
+    await knex('notifications').insert({
+      user: purchase.requestedBy,
+      title: 'Solicitação Aprovada',
+      message: `Sua solicitação de ${purchase.productName} foi aprovada pelo financeiro.`
+    });
+  } else if (status === 'REJECTED') {
+    // Notificar solicitante sobre recusa
+    await knex('notifications').insert({
+      user: purchase.requestedBy,
+      title: 'Solicitação Recusada',
+      message: `Sua solicitação de ${purchase.productName} foi recusada. Motivo: ${rejectionReason}`
+    });
   }
 
   res.json({ success: true });
@@ -246,6 +282,21 @@ app.post('/api/sectors', async (req, res) => {
     allocated: allocated || 0,
     spent: 0 
   });
+  res.json({ success: true });
+});
+
+app.get('/api/notifications/:username', async (req, res) => {
+  const { username } = req.params;
+  const notifications = await knex('notifications')
+    .where({ user: username })
+    .orderBy('createdAt', 'desc')
+    .limit(10);
+  res.json(notifications);
+});
+
+app.post('/api/notifications/:id/read', async (req, res) => {
+  const { id } = req.params;
+  await knex('notifications').where({ id }).update({ read: true });
   res.json({ success: true });
 });
 

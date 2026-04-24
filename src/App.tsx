@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LayoutDashboard, ShoppingCart, Wallet, Users, LogOut, Search, Bell, Plus } from 'lucide-react';
 import LottieLogo from './components/LottieLogo';
 import Dashboard from './pages/Dashboard';
@@ -7,6 +7,7 @@ import BudgetManagement from './pages/BudgetManagement';
 import AdminPanel from './pages/AdminPanel';
 import Login from './components/Login';
 import ChangePassword from './components/ChangePassword';
+import { API_URL } from './config';
 
 type Tab = 'dashboard' | 'purchases' | 'budget' | 'admin' | 'settings';
 
@@ -15,6 +16,28 @@ const App: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [showNewRequest, setShowNewRequest] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  const fetchNotifications = () => {
+    if (user && user.username) {
+      fetch(`${API_URL}/notifications/${user.username}`)
+        .then(res => res.json())
+        .then(data => setNotifications(data))
+        .catch(err => console.error('Erro ao buscar notificações:', err));
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, [user]);
+
+  const markAsRead = async (id: number) => {
+    await fetch(`${API_URL}/notifications/${id}/read`, { method: 'POST' });
+    fetchNotifications();
+  };
 
   if (!user) {
     return <Login onLogin={setUser} />;
@@ -130,9 +153,62 @@ const App: React.FC = () => {
                 onChange={e => setSearchTerm(e.target.value)}
               />
             </div>
-            <button className="glass" style={{ padding: '10px', borderRadius: '50%', color: 'white' }}>
-              <Bell size={20} />
-            </button>
+            <div style={{ position: 'relative' }}>
+              <button 
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="glass" 
+                style={{ padding: '10px', borderRadius: '50%', color: 'white', position: 'relative' }}
+              >
+                <Bell size={20} />
+                {notifications.filter(n => !n.read).length > 0 && (
+                  <span style={{
+                    position: 'absolute', top: '-2px', right: '-2px',
+                    width: '18px', height: '18px', borderRadius: '50%',
+                    background: '#ef4444', color: 'white', fontSize: '10px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontWeight: 'bold', border: '2px solid var(--bg-main)'
+                  }}>
+                    {notifications.filter(n => !n.read).length}
+                  </span>
+                )}
+              </button>
+
+              {showNotifications && (
+                <div className="card" style={{
+                  position: 'absolute', top: '100%', right: 0, marginTop: '12px',
+                  width: '320px', zIndex: 1002, padding: '0', overflow: 'hidden',
+                  boxShadow: '0 20px 50px rgba(0,0,0,0.5)'
+                }}>
+                  <div style={{ padding: '16px', borderBottom: '1px solid var(--border)', fontWeight: '600', display: 'flex', justifyContent: 'space-between' }}>
+                    Notificações
+                    <span style={{ fontSize: '11px', color: 'var(--primary)', cursor: 'pointer' }}>Limpar</span>
+                  </div>
+                  <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                    {notifications.length > 0 ? notifications.map(n => (
+                      <div 
+                        key={n.id} 
+                        onClick={() => markAsRead(n.id)}
+                        style={{ 
+                          padding: '16px', borderBottom: '1px solid rgba(255,255,255,0.03)', 
+                          cursor: 'pointer', background: n.read ? 'transparent' : 'rgba(99, 102, 241, 0.05)',
+                          transition: '0.2s'
+                        }}
+                      >
+                        <div style={{ fontSize: '13px', fontWeight: n.read ? '500' : '700', marginBottom: '4px' }}>{n.title}</div>
+                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.4' }}>{n.message}</div>
+                        <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)', marginTop: '8px' }}>
+                          {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </div>
+                    )) : (
+                      <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '14px' }}>
+                        Nenhuma notificação por enquanto.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
             <button 
               onClick={() => {
                 setActiveTab('purchases');

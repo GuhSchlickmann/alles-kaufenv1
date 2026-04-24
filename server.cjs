@@ -249,6 +249,17 @@ app.post('/api/sectors', async (req, res) => {
   res.json({ success: true });
 });
 
+app.delete('/api/sectors/:sector', async (req, res) => {
+  const { sector } = req.params;
+  // Opcional: Impedir de excluir setores que tem compras atreladas
+  const hasPurchases = await knex('purchases').where({ sector }).first();
+  if (hasPurchases) {
+    return res.status(400).json({ error: 'Não é possível excluir um setor que possui solicitações de compra.' });
+  }
+  await knex('budgets').where({ sector }).delete();
+  res.json({ success: true });
+});
+
 app.delete('/api/purchases/:id', async (req, res) => {
   const { id } = req.params;
   

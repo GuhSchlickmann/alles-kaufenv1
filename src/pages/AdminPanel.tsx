@@ -70,6 +70,27 @@ const AdminPanel: React.FC<{ user: any }> = ({ user }) => {
     alert('Novo setor criado com sucesso!');
   };
 
+  const handleDeleteSector = async (sectorName: string) => {
+    if (user.name !== 'Gustavo') {
+      alert('Apenas o Gustavo (TI) pode excluir setores!');
+      return;
+    }
+
+    if (window.confirm(`ATENÇÃO: Deseja realmente excluir o setor "${sectorName}"? Isso removerá todos os dados de orçamento vinculados.`)) {
+      const res = await fetch(`${API_URL}/sectors/${sectorName}`, {
+        method: 'DELETE'
+      });
+      
+      if (res.ok) {
+        fetchData();
+        alert('Setor excluído com sucesso!');
+      } else {
+        const error = await res.json();
+        alert(error.error || 'Erro ao excluir setor.');
+      }
+    }
+  };
+
   if (user.role !== 'ADMIN') {
     return (
       <div className="card" style={{ textAlign: 'center', padding: '60px' }}>
@@ -156,6 +177,44 @@ const AdminPanel: React.FC<{ user: any }> = ({ user }) => {
               Criar Setor
             </button>
           </form>
+        </div>
+      </div>
+
+      {/* Sectors List Table */}
+      <div className="card">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+          <Layout size={20} style={{ color: 'var(--success)' }} />
+          <h3 style={{ fontSize: '18px' }}>Setores e Orçamentos</h3>
+        </div>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ textAlign: 'left', color: 'var(--text-muted)', fontSize: '14px', borderBottom: '1px solid var(--border)' }}>
+                <th style={{ padding: '12px' }}>Setor</th>
+                <th>Orçamento Atual</th>
+                <th style={{ textAlign: 'right' }}>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sectors.map(s => (
+                <tr key={s.sector} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '14px' }}>
+                  <td style={{ padding: '16px 12px', fontWeight: '600' }}>{s.sector}</td>
+                  <td>R$ {parseFloat(s.allocated || 0).toLocaleString()}</td>
+                  <td style={{ textAlign: 'right' }}>
+                    {user.name === 'Gustavo' && (
+                      <button 
+                        onClick={() => handleDeleteSector(s.sector)}
+                        className="glass" 
+                        style={{ padding: '6px', color: 'var(--danger)' }}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 

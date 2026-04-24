@@ -134,7 +134,7 @@ app.get('/api/purchases', async (req, res) => {
 });
 
 app.post('/api/purchases', async (req, res) => {
-  const { productName, description, amount, sector, requestedBy, paymentMethod, dueDate } = req.body;
+  const { productName, description, amount, sector, requestedBy, paymentMethod, dueDate, productLink } = req.body;
   
   // Basic Business Rule Check
   const dayOfMonth = new Date().getDate();
@@ -143,7 +143,7 @@ app.post('/api/purchases', async (req, res) => {
   }
 
   const [id] = await knex('purchases').insert({
-    productName, description, amount, sector, requestedBy, paymentMethod, dueDate
+    productName, description, amount, sector, requestedBy, paymentMethod, dueDate, productLink
   });
 
   res.json({ id, status: 'PENDING' });

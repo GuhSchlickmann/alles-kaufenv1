@@ -39,8 +39,8 @@ function createWindow() {
     }
   });
 
-  // Points to the server's static file serving port
-  win.loadURL('http://10.96.1.198:3001');
+  // Agora aponta para o seu servidor oficial na nuvem!
+  win.loadURL('https://alles-kaufen-system.onrender.com');
 }
 
 app.whenReady().then(createWindow);

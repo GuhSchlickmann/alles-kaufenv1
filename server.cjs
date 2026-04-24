@@ -33,7 +33,7 @@ async function initDb() {
     await knex.schema.createTable('purchases', (table) => {
       table.increments('id').primary();
       table.string('productName');
-      table.string('productLink');
+      table.text('productLink');
       table.text('description');
       table.decimal('amount');
       table.string('sector');
@@ -44,6 +44,19 @@ async function initDb() {
       table.date('dueDate');
       table.timestamp('createdAt').defaultTo(knex.fn.now());
     });
+  } else {
+    // Check if productLink column exists
+    const hasProductLink = await knex.schema.hasColumn('purchases', 'productLink');
+    if (!hasProductLink) {
+      await knex.schema.table('purchases', (table) => {
+        table.text('productLink');
+      });
+    } else {
+      // Força a mudança para TEXT caso o link seja muito longo (Amazon etc)
+      await knex.schema.table('purchases', (table) => {
+        table.text('productLink').alter();
+      });
+    }
   }
 
   const hasBudgets = await knex.schema.hasTable('budgets');

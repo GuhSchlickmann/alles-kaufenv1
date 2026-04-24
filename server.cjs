@@ -19,7 +19,7 @@ const dbConfig = process.env.DATABASE_URL ? {
 } : {
   client: 'sqlite3',
   connection: {
-    filename: "./data_v10.sqlite"
+    filename: "./data_v11.sqlite"
   },
   useNullAsDefault: true
 };
@@ -115,7 +115,7 @@ async function initDb() {
     const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
     await knex('monthly_budgets').insert(months.map(m => ({ 
       month: m, 
-      budget: 120000, // Monthly target
+      budget: 0, 
       spent: 0 
     })));
   }

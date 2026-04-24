@@ -10,9 +10,11 @@ const dbConfig = process.env.DATABASE_URL ? {
   client: 'pg',
   connection: {
     connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
+    ssl: { 
+      rejectUnauthorized: false 
+    }
   },
-  useNullAsDefault: true
+  pool: { min: 2, max: 10 }
 } : {
   client: 'sqlite3',
   connection: {

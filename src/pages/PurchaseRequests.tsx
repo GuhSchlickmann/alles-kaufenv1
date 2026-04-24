@@ -202,7 +202,9 @@ const PurchaseRequests: React.FC<{
                       </a>
                     )}
                   </div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>ID: #{req.id} • {req.paymentMethod}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                    ID: #{req.id} • {req.paymentMethod} • Criado em: {format(new Date(req.createdAt), 'dd/MM/yy HH:mm')}
+                  </div>
                   {req.rejectionReason && (
                     <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px', fontStyle: 'italic' }}>
                       Motivo: {req.rejectionReason}
@@ -483,16 +485,21 @@ const PurchaseRequests: React.FC<{
                     R$ {parseFloat(showDetails.amount).toLocaleString()}
                   </div>
                 </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div>
                   <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Pagamento</div>
                   <div style={{ fontWeight: '600' }}>{showDetails.paymentMethod}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Data Solicitação</div>
+                  <div style={{ fontWeight: '600' }}>{format(new Date(showDetails.createdAt), 'dd/MM/yyyy HH:mm')}</div>
                 </div>
               </div>
 
               {showDetails.productLink && (
                 <div>
                   <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Link do Produto</div>
-                  <a href={showDetails.productLink} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', fontSize: '14px', wordBreak: 'break-all' }}>
+                  <a href={showDetails.productLink} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', fontSize: '14px', wordBreak: 'break-all', fontWeight: 'bold', textDecoration: 'underline' }}>
                     {showDetails.productLink}
                   </a>
                 </div>

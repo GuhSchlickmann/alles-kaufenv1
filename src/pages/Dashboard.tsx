@@ -12,7 +12,9 @@ const Dashboard: React.FC<{ user: any }> = ({ user }) => {
   const [purchases, setPurchases] = useState<any[]>([]);
   const [budgets, setBudgets] = useState<any[]>([]);
   const [monthlyData, setMonthlyData] = useState<any[]>([]);
-  const [selectedSector, setSelectedSector] = useState<string>('TODOS');
+  const [selectedSector, setSelectedSector] = useState<string>(
+    (user.sector === 'TI' || user.role === 'FINANCE') ? 'TODOS' : user.sector
+  );
   const [allSectors, setAllSectors] = useState<any[]>([]);
 
   useEffect(() => {
@@ -77,7 +79,7 @@ const Dashboard: React.FC<{ user: any }> = ({ user }) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* Filtro de Setor */}
-      {(user.role === 'ADMIN' || user.role === 'FINANCE') && (
+      {(user.sector === 'TI' || user.role === 'FINANCE') && (
         <div className="card" style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '16px' }}>
           <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-muted)' }}>Filtrar por Setor:</span>
           <select 

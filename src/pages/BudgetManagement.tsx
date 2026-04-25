@@ -149,50 +149,52 @@ const BudgetManagement: React.FC<{ user: any }> = ({ user }) => {
       </div>
 
       {/* Planejamento Mensal por Setor */}
-      <div className="card" style={{ marginTop: '24px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-          <TrendingUp size={20} style={{ color: 'var(--primary)' }} />
-          <h3 style={{ fontSize: '18px' }}>Planejamento Mensal (Sazonalidade)</h3>
-        </div>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ textAlign: 'left', color: 'var(--text-muted)', fontSize: '14px', borderBottom: '1px solid var(--border)' }}>
-                <th style={{ padding: '12px' }}>Mês</th>
-                { (user.sector === 'TI' || user.role === 'FINANCE') && <th>Setor</th> }
-                <th>Teto de Gasto (R$)</th>
-                <th>Status Atual</th>
-              </tr>
-            </thead>
-            <tbody>
-              {seasonality.map(m => (
-                <tr key={`${m.sector}-${m.month}`} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '14px' }}>
-                  <td style={{ padding: '16px 12px', fontWeight: '600' }}>{m.month}</td>
-                  { (user.sector === 'TI' || user.role === 'FINANCE') && <td>{m.sector}</td> }
-                  <td>
-                    <input 
-                      type="number" 
-                      defaultValue={m.budget}
-                      onBlur={(e) => handleUpdateSeasonality(m.month, parseFloat(e.target.value), m.sector)}
-                      style={{ width: '120px', padding: '6px', fontSize: '13px' }}
-                    />
-                  </td>
-                  <td>
-                    <span className="badge" style={{ 
-                      background: m.spent > m.budget ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
-                      color: m.spent > m.budget ? '#ef4444' : '#10b981'
-                    }}>
-                      {m.spent > m.budget ? 'Excedido' : 'Dentro do limite'}
-                    </span>
-                  </td>
+      {seasonality.length > 0 && (
+        <div className="card" style={{ marginTop: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+            <TrendingUp size={20} style={{ color: 'var(--primary)' }} />
+            <h3 style={{ fontSize: '18px' }}>Planejamento Mensal (Sazonalidade)</h3>
+          </div>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ textAlign: 'left', color: 'var(--text-muted)', fontSize: '14px', borderBottom: '1px solid var(--border)' }}>
+                  <th style={{ padding: '12px' }}>Mês</th>
+                  { (user.sector === 'TI' || user.role === 'FINANCE') && <th>Setor</th> }
+                  <th>Teto de Gasto (R$)</th>
+                  <th>Status Atual</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {seasonality.map(m => (
+                  <tr key={`${m.sector}-${m.month}`} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '14px' }}>
+                    <td style={{ padding: '16px 12px', fontWeight: '600' }}>{m.month}</td>
+                    { (user.sector === 'TI' || user.role === 'FINANCE') && <td>{m.sector}</td> }
+                    <td>
+                      <input 
+                        type="number" 
+                        defaultValue={m.budget}
+                        onBlur={(e) => handleUpdateSeasonality(m.month, parseFloat(e.target.value), m.sector)}
+                        style={{ width: '120px', padding: '6px', fontSize: '13px' }}
+                      />
+                    </td>
+                    <td>
+                      <span className="badge" style={{ 
+                        background: m.spent > m.budget ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+                        color: m.spent > m.budget ? '#ef4444' : '#10b981'
+                      }}>
+                        {m.spent > m.budget ? 'Excedido' : 'Dentro do limite'}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
 
-      {(user.role === 'FINANCE' || user.role === 'ADMIN') && (
+      {(user.sector === 'TI' || user.role === 'FINANCE') && (
         <div className="card">
           <h3 style={{ marginBottom: '20px' }}>Consolidado Geral (Visão Financeiro)</h3>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px', height: '200px' }}>

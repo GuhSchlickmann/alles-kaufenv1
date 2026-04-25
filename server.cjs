@@ -19,7 +19,7 @@ const dbConfig = process.env.DATABASE_URL ? {
 } : {
   client: 'sqlite3',
   connection: {
-    filename: "./data_v14.sqlite"
+    filename: "./data_v15.sqlite"
   },
   useNullAsDefault: true
 };
@@ -95,17 +95,17 @@ async function initDb() {
 
     // Seed users
     await knex('users').insert([
-      { username: 'afonso', password: '123', name: 'Afonso', role: 'SECTOR_LEAD', sector: 'Manutenção' },
+      { username: 'afonso', password: '123', name: 'Afonso', role: 'LEADER', sector: 'Manutenção' },
       { username: 'julio', password: '123', name: 'Julio', role: 'ADMIN', sector: 'Manutenção' },
-      { username: 'felipe', password: '123', name: 'Felipe', role: 'SECTOR_LEAD', sector: 'Bilheteria' },
+      { username: 'felipe', password: '123', name: 'Felipe', role: 'LEADER', sector: 'Bilheteria' },
       { username: 'paula', password: '123', name: 'Paula', role: 'FINANCE', sector: 'Financeiro' },
       { username: 'juan', password: '123', name: 'Juan', role: 'FINANCE', sector: 'Financeiro' },
       { username: 'giovana', password: '123', name: 'Giovana', role: 'FINANCE', sector: 'Financeiro' },
-      { username: 'leonardo', password: '123', name: 'Leonardo', role: 'SECTOR_LEAD', sector: 'Operação' },
-      { username: 'veronica', password: '123', name: 'Veronica', role: 'SECTOR_LEAD', sector: 'Estação' },
-      { username: 'grazi', password: '123', name: 'Grazi', role: 'SECTOR_LEAD', sector: 'Marketing' },
-      { username: 'esther', password: '123', name: 'Esther', role: 'SECTOR_LEAD', sector: 'Comercial' },
-      { username: 'ramon', password: '123', name: 'Ramon', role: 'SECTOR_LEAD', sector: 'Eventos' },
+      { username: 'leonardo', password: '123', name: 'Leonardo', role: 'LEADER', sector: 'Operação' },
+      { username: 'veronica', password: '123', name: 'Veronica', role: 'LEADER', sector: 'Estação' },
+      { username: 'grazi', password: '123', name: 'Grazi', role: 'LEADER', sector: 'Marketing' },
+      { username: 'esther', password: '123', name: 'Esther', role: 'LEADER', sector: 'Comercial' },
+      { username: 'ramon', password: '123', name: 'Ramon', role: 'LEADER', sector: 'Eventos' },
       { username: 'gustavo', password: '123', name: 'Gustavo', role: 'ADMIN', sector: 'TI' }
     ]);
   }

@@ -12,7 +12,7 @@ const AdminPanel: React.FC<{ user: any }> = ({ user }) => {
     username: '',
     password: '123',
     name: '',
-    role: 'SECTOR_LEAD',
+    role: 'LEADER',
     sector: ''
   });
 
@@ -56,7 +56,7 @@ const AdminPanel: React.FC<{ user: any }> = ({ user }) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newUser)
     });
-    setNewUser({ username: '', password: '123', name: '', role: 'SECTOR_LEAD', sector: '' });
+    setNewUser({ username: '', password: '123', name: '', role: 'LEADER', sector: '' });
     fetchData();
     alert('Usuário criado com sucesso! Senha padrão: 123');
   };
@@ -148,7 +148,7 @@ const AdminPanel: React.FC<{ user: any }> = ({ user }) => {
               <div>
                 <label style={{ display: 'block', fontSize: '13px', marginBottom: '6px', color: 'var(--text-muted)' }}>Nível de Acesso</label>
                 <select value={newUser.role} onChange={e => setNewUser({...newUser, role: e.target.value})}>
-                  <option value="SECTOR_LEAD">Líder de Setor</option>
+                  <option value="LEADER">Líder de Setor</option>
                   <option value="FINANCE">Financeiro</option>
                   <option value="ADMIN">Administrador TI</option>
                 </select>

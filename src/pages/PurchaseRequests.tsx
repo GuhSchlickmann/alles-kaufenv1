@@ -183,9 +183,11 @@ const PurchaseRequests: React.FC<{
       {/* Toolbar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', gap: '12px' }}>
-          <button className="glass" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }} onClick={() => setShowFilters(!showFilters)}>
-            <Filter size={16} /> Filtros
-          </button>
+          {(user.role === 'ADMIN' || user.role === 'FINANCE') && (
+            <button className="glass" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }} onClick={() => setShowFilters(!showFilters)}>
+              <Filter size={16} /> Filtros
+            </button>
+          )}
           <button 
             className="glass" 
             style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}

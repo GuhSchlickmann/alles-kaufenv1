@@ -16,6 +16,11 @@ const PurchaseRequests: React.FC<{
   const [rejectId, setRejectId] = useState<number | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [availableSectors, setAvailableSectors] = useState<any[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [filterStatus, setFilterStatus] = useState('ALL');
+  const [filterSector, setFilterSector] = useState('ALL');
+  const [sectors, setSectors] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     productName: '',
     productLink: '',
@@ -53,13 +58,34 @@ const PurchaseRequests: React.FC<{
       });
   };
 
+  const fetchSectors = async () => {
+    try {
+      const res = await fetch(`${API_URL}/sectors`);
+      const data = await res.json();
+      setSectors(data.map((s: any) => s.sector));
+    } catch (err) {
+      console.error('Erro ao buscar setores:', err);
+    }
+  };
+
   useEffect(() => {
     fetchData();
+    fetchSectors();
     // Busca os setores cadastrados no banco
     fetch(`${API_URL}/budgets`)
       .then(res => res.json())
       .then(data => setAvailableSectors(data));
   }, [user]);
+
+  const filteredPurchases = purchases.filter(p => {
+    const matchStatus = filterStatus === 'ALL' || p.status === filterStatus;
+    const matchSector = filterSector === 'ALL' || p.sector === filterSector;
+    const matchSearch = 
+      p.productName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.sector?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.status?.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchStatus && matchSector && matchSearch;
+  });
 
   const isLateInMonth = getDate(new Date()) >= 25;
 
@@ -69,9 +95,8 @@ const PurchaseRequests: React.FC<{
       ...formData,
       amount: parseFloat(formData.amount),
       requestedBy: user.name,
-      productLink: formData.productLink // Forçando explicitamente aqui
+      productLink: formData.productLink 
     };
-    console.log("Enviando solicitação:", payload);
 
     await fetch(`${API_URL}/purchases`, {
       method: 'POST',
@@ -126,7 +151,6 @@ const PurchaseRequests: React.FC<{
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Solicitações");
 
-    // Adjust column widths
     const wscols = [
       { wch: 5 }, { wch: 30 }, { wch: 15 }, { wch: 15 }, 
       { wch: 15 }, { wch: 12 }, { wch: 15 }, { wch: 40 }
@@ -138,7 +162,6 @@ const PurchaseRequests: React.FC<{
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Rules Alert */}
       {isLateInMonth && (
         <div style={{ 
           background: 'rgba(239, 68, 68, 0.1)', 
@@ -161,7 +184,7 @@ const PurchaseRequests: React.FC<{
       {/* Toolbar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', gap: '12px' }}>
-          <button className="glass" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
+          <button className="glass" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }} onClick={() => setShowFilters(!showFilters)}>
             <Filter size={16} /> Filtros
           </button>
           <button 
@@ -173,6 +196,48 @@ const PurchaseRequests: React.FC<{
           </button>
         </div>
       </div>
+
+      {showFilters && (
+        <div className="card" style={{ marginBottom: '24px', padding: '16px', background: 'rgba(255,255,255,0.03)', display: 'flex', gap: '20px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Status</label>
+            <select 
+              value={filterStatus} 
+              onChange={e => setFilterStatus(e.target.value)}
+              style={{ width: '160px', padding: '8px' }}
+            >
+              <option value="ALL">Todos</option>
+              <option value="PENDING">Pendentes</option>
+              <option value="APPROVED">Aprovados</option>
+              <option value="REJECTED">Recusados</option>
+            </select>
+          </div>
+          
+          {(user.role === 'ADMIN' || user.role === 'FINANCE') && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Setor</label>
+              <select 
+                value={filterSector} 
+                onChange={e => setFilterSector(e.target.value)}
+                style={{ width: '160px', padding: '8px' }}
+              >
+                <option value="ALL">Todos os Setores</option>
+                {sectors.map(s => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <button 
+            className="glass" 
+            style={{ padding: '8px 16px', color: 'var(--text-muted)' }}
+            onClick={() => { setFilterStatus('ALL'); setFilterSector('ALL'); }}
+          >
+            Limpar
+          </button>
+        </div>
+      )}
 
       {/* Requests Table */}
       <div className="card" style={{ padding: '0' }}>
@@ -188,13 +253,7 @@ const PurchaseRequests: React.FC<{
             </tr>
           </thead>
           <tbody>
-            {purchases
-              .filter(req => 
-                req.productName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                req.sector?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                req.status?.toLowerCase().includes(searchTerm.toLowerCase())
-              )
-              .map(req => (
+            {filteredPurchases.map(req => (
                 <tr key={req.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '14px' }}>
                 <td style={{ padding: '16px 12px' }}>
                   <div style={{ fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>

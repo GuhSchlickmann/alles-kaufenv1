@@ -130,11 +130,49 @@ const BudgetManagement: React.FC<{ user: any }> = ({ user }) => {
       </div>
 
       {/* Planejamento Mensal por Setor */}
-      {seasonality.length > 0 && (
+      {seasonality.length > 0 && budgets.length > 0 && (
         <div className="card" style={{ marginTop: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-            <TrendingUp size={20} style={{ color: 'var(--primary)' }} />
-            <h3 style={{ fontSize: '18px' }}>Planejamento Mensal (Sazonalidade)</h3>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <TrendingUp size={20} style={{ color: 'var(--primary)' }} />
+              <h3 style={{ fontSize: '18px' }}>Planejamento Mensal (Sazonalidade)</h3>
+            </div>
+            
+            {/* Validação de Soma vs Anual */}
+            {(() => {
+              const myBudget = budgets.find(b => b.sector === user.sector);
+              if (!myBudget) return null;
+              
+              const seasonalTotal = seasonality.reduce((acc, curr) => acc + parseFloat(curr.budget || 0), 0);
+              const annualTeto = parseFloat(myBudget.annual_budget || 0);
+              const diff = Math.abs(seasonalTotal - annualTeto);
+              const isMatch = diff < 0.1;
+
+              return (
+                <div style={{ 
+                  padding: '8px 16px', 
+                  borderRadius: '8px', 
+                  fontSize: '13px',
+                  background: isMatch ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                  color: isMatch ? '#10b981' : '#ef4444',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  border: '1px solid currentColor'
+                }}>
+                  <AlertCircle size={16} />
+                  {isMatch ? (
+                    <strong>Planejamento 100% batendo com o Anual!</strong>
+                  ) : (
+                    <span>
+                      Soma dos meses (R$ {seasonalTotal.toLocaleString()}) 
+                      {seasonalTotal > annualTeto ? ' EXCEDEU ' : ' está ABAIXO '} 
+                      do teto anual de R$ {annualTeto.toLocaleString()}
+                    </span>
+                  )}
+                </div>
+              );
+            })()}
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>

@@ -60,6 +60,15 @@ async function initDb() {
   }
 
   const hasBudgets = await knex.schema.hasTable('budgets');
+  if (hasBudgets) {
+    const columns = await knex('budgets').columnInfo();
+    if (!columns.monthly_budget) {
+      await knex.schema.table('budgets', t => t.decimal('monthly_budget').defaultTo(0));
+    }
+    if (!columns.annual_budget) {
+      await knex.schema.table('budgets', t => t.decimal('annual_budget').defaultTo(0));
+    }
+  }
   if (!hasBudgets) {
     await knex.schema.createTable('budgets', (table) => {
       table.string('sector').primary();

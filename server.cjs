@@ -110,8 +110,8 @@ async function initDb() {
     ]);
   }
 
-  const hasMonthlyBudgets = await knex.schema.hasTable('monthly_budgets');
-  if (!hasMonthlyBudgets) {
+  const hasSeasonality = await knex.schema.hasTable('sector_seasonality');
+  if (!hasSeasonality) {
     await knex.schema.createTable('sector_seasonality', (table) => {
       table.string('sector');
       table.string('month');
@@ -122,11 +122,15 @@ async function initDb() {
 
     // Seed months with real-world empty starting state
     const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-    await knex('monthly_budgets').insert(months.map(m => ({ 
-      month: m, 
-      budget: 0, 
-      spent: 0 
-    })));
+    const sectors = ['Operação', 'Bilheteria', 'Manutenção', 'Financeiro', 'Marketing', 'Comercial', 'Eventos', 'Estação', 'TI'];
+    
+    const initialSeasonality = [];
+    sectors.forEach(s => {
+      months.forEach(m => {
+        initialSeasonality.push({ sector: s, month: m, budget: 0, spent: 0 });
+      });
+    });
+    await knex('sector_seasonality').insert(initialSeasonality);
   }
 
   const hasNotifications = await knex.schema.hasTable('notifications');

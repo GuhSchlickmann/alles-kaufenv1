@@ -96,8 +96,6 @@ const AdminPanel: React.FC<{ user: any }> = ({ user }) => {
     }
   };
 
-  };
-
   if (user.sector !== 'TI') {
     return (
       <div className="card" style={{ textAlign: 'center', padding: '60px' }}>

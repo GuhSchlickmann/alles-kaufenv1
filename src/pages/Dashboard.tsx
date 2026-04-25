@@ -145,6 +145,7 @@ const Dashboard: React.FC<{ user: any }> = ({ user }) => {
                   <XAxis dataKey="month" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
                   <YAxis stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `R$ ${val/1000}k`} />
                   <Tooltip 
+                    cursor={{ fill: 'rgba(255, 255, 255, 0.03)' }}
                     contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px' }}
                     itemStyle={{ fontSize: '12px' }}
                     formatter={(value: any) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)}

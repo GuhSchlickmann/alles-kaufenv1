@@ -109,7 +109,7 @@ const AdminPanel: React.FC<{ user: any }> = ({ user }) => {
     fetchData();
   };
 
-  if (user.role !== 'ADMIN') {
+  if (user.sector !== 'TI') {
     return (
       <div className="card" style={{ textAlign: 'center', padding: '60px' }}>
         <AlertCircle size={48} style={{ color: 'var(--danger)', marginBottom: '16px' }} />

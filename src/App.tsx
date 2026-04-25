@@ -101,7 +101,7 @@ const App: React.FC = () => {
               onClick={() => setActiveTab('budget')} 
             />
           )}
-          {user.role === 'ADMIN' && (
+          {user.sector === 'TI' && (
             <SidebarItem 
               icon={<Users size={20} />} 
               label="Administração" 

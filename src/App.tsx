@@ -39,6 +39,13 @@ const App: React.FC = () => {
     fetchNotifications();
   };
 
+  const clearNotifications = async () => {
+    if (user && user.username) {
+      await fetch(`${API_URL}/notifications/${user.username}`, { method: 'DELETE' });
+      fetchNotifications();
+    }
+  };
+
   if (!user) {
     return <Login onLogin={setUser} />;
   }
@@ -181,7 +188,12 @@ const App: React.FC = () => {
                 }}>
                   <div style={{ padding: '16px', borderBottom: '1px solid var(--border)', fontWeight: '600', display: 'flex', justifyContent: 'space-between' }}>
                     Notificações
-                    <span style={{ fontSize: '11px', color: 'var(--primary)', cursor: 'pointer' }}>Limpar</span>
+                    <span 
+                      onClick={clearNotifications}
+                      style={{ fontSize: '11px', color: 'var(--primary)', cursor: 'pointer' }}
+                    >
+                      Limpar
+                    </span>
                   </div>
                   <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
                     {notifications.length > 0 ? notifications.map(n => (

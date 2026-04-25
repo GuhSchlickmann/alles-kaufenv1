@@ -300,6 +300,12 @@ app.post('/api/notifications/:id/read', async (req, res) => {
   res.json({ success: true });
 });
 
+app.delete('/api/notifications/:username', async (req, res) => {
+  const { username } = req.params;
+  await knex('notifications').where({ user: username }).delete();
+  res.json({ success: true });
+});
+
 app.delete('/api/sectors/:sector', async (req, res) => {
   const { sector } = req.params;
   // Opcional: Impedir de excluir setores que tem compras atreladas

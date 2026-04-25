@@ -213,10 +213,17 @@ const AdminPanel: React.FC<{ user: any }> = ({ user }) => {
             </thead>
             <tbody>
               {sectors.map(s => {
-                const currentMonthName = new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(new Date()).replace('.', '');
-                const capitalizedMonth = currentMonthName.charAt(0).toUpperCase() + currentMonthName.slice(1);
-                const seasonalMonth = monthlyStats.find(m => m.sector === s.sector && m.month === capitalizedMonth);
+                // Pega o mês atual de forma robusta
+                const now = new Date();
+                const monthIndex = now.getMonth();
+                const monthsShort = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+                const targetMonth = monthsShort[monthIndex];
 
+                const seasonalMonth = monthlyStats.find(m => 
+                  m.sector === s.sector && 
+                  m.month.toLowerCase().startsWith(targetMonth.toLowerCase())
+                );
+                
                 return (
                   <tr key={s.sector} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '14px' }}>
                     <td style={{ padding: '16px 12px', fontWeight: '600' }}>{s.sector}</td>

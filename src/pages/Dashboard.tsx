@@ -68,10 +68,14 @@ const Dashboard: React.FC<{ user: any }> = ({ user }) => {
   const totalSpent = filteredBudgets.reduce((acc, curr) => acc + parseFloat(curr.spent || 0), 0);
   
   // Cálculo inteligente do budget mensal baseado no mês atual da tabela de sazonalidade
-  const currentMonthName = new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(new Date()).replace('.', '');
-  const capitalizedMonth = currentMonthName.charAt(0).toUpperCase() + currentMonthName.slice(1);
+  const now = new Date();
+  const monthIndex = now.getMonth();
+  const monthsShort = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+  const targetMonth = monthsShort[monthIndex];
   
-  const currentMonthData = monthlyData.find(m => m.month === capitalizedMonth);
+  const currentMonthData = monthlyData.find(m => 
+    m.month.toLowerCase().startsWith(targetMonth.toLowerCase())
+  );
   const totalMonthlyBudget = currentMonthData ? parseFloat(currentMonthData.budget || 0) : 0;
 
   const totalAnnualBudget = filteredBudgets.reduce((acc, curr) => acc + parseFloat(curr.annual_budget || 0), 0);

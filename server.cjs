@@ -170,6 +170,27 @@ app.post('/api/budgets/update', async (req, res) => {
   res.json({ success: true });
 });
 
+// Rota especializada para o Painel Admin ver o resumo dos setores
+app.get('/api/admin/sectors', async (req, res) => {
+  const now = new Date();
+  const monthIndex = now.getMonth();
+  const monthsShort = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+  const targetMonth = monthsShort[monthIndex];
+
+  const sectors = await knex('budgets').select('*');
+  const seasonality = await knex('sector_seasonality').where('month', 'like', `${targetMonth}%`);
+
+  const merged = sectors.map(s => {
+    const sea = seasonality.find(m => m.sector === s.sector);
+    return {
+      ...s,
+      current_month_budget: sea ? sea.budget : 0
+    };
+  });
+
+  res.json(merged);
+});
+
 app.get('/api/purchases', async (req, res) => {
   const purchases = await knex('purchases').select('*').orderBy('createdAt', 'desc');
   res.json(purchases);

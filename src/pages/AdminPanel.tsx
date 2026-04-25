@@ -27,15 +27,13 @@ const AdminPanel: React.FC<{ user: any }> = ({ user }) => {
 
   const fetchData = async () => {
     try {
-      const [uRes, sRes, mRes] = await Promise.all([
+      const [uRes, sRes] = await Promise.all([
         fetch(`${API_URL}/users`),
-        fetch(`${API_URL}/sectors`),
-        fetch(`${API_URL}/seasonality/ALL`)
+        fetch(`${API_URL}/admin/sectors`)
       ]);
-      const [uData, sData, mData] = await Promise.all([uRes.json(), sRes.json(), mRes.json()]);
+      const [uData, sData] = await Promise.all([uRes.json(), sRes.json()]);
       setUsers(uData);
       setSectors(sData);
-      setMonthlyStats(mData);
     } catch (err) {
       console.error('Erro ao buscar dados:', err);
     } finally {
@@ -212,37 +210,24 @@ const AdminPanel: React.FC<{ user: any }> = ({ user }) => {
               </tr>
             </thead>
             <tbody>
-              {sectors.map(s => {
-                // Pega o mês atual de forma robusta
-                const now = new Date();
-                const monthIndex = now.getMonth();
-                const monthsShort = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-                const targetMonth = monthsShort[monthIndex];
-
-                const seasonalMonth = monthlyStats.find(m => 
-                  m.sector === s.sector && 
-                  m.month.toLowerCase().startsWith(targetMonth.toLowerCase())
-                );
-                
-                return (
-                  <tr key={s.sector} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '14px' }}>
-                    <td style={{ padding: '16px 12px', fontWeight: '600' }}>{s.sector}</td>
-                    <td>R$ {parseFloat(seasonalMonth?.budget || 0).toLocaleString()}</td>
-                    <td>R$ {parseFloat(s.annual_budget || 0).toLocaleString()}</td>
-                    <td style={{ textAlign: 'right' }}>
-                      {user.name === 'Gustavo' && (
-                        <button 
-                          onClick={() => handleDeleteSector(s.sector)}
-                          className="glass" 
-                          style={{ padding: '6px', color: 'var(--danger)' }}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
+              {sectors.map(s => (
+                <tr key={s.sector} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '14px' }}>
+                  <td style={{ padding: '16px 12px', fontWeight: '600' }}>{s.sector}</td>
+                  <td>R$ {parseFloat(s.current_month_budget || 0).toLocaleString()}</td>
+                  <td>R$ {parseFloat(s.annual_budget || 0).toLocaleString()}</td>
+                  <td style={{ textAlign: 'right' }}>
+                    {user.name === 'Gustavo' && (
+                      <button 
+                        onClick={() => handleDeleteSector(s.sector)}
+                        className="glass" 
+                        style={{ padding: '6px', color: 'var(--danger)' }}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>

@@ -51,7 +51,8 @@ const Dashboard: React.FC<{ user: any }> = ({ user }) => {
   }, [user]);
 
   const totalSpent = budgets.reduce((acc, curr) => acc + parseFloat(curr.spent || 0), 0);
-  const totalAllocated = budgets.reduce((acc, curr) => acc + parseFloat(curr.allocated || 0), 0);
+  const totalMonthlyBudget = budgets.reduce((acc, curr) => acc + parseFloat(curr.monthly_budget || 0), 0);
+  const totalAnnualBudget = budgets.reduce((acc, curr) => acc + parseFloat(curr.annual_budget || 0), 0);
 
   const sectorPieData = budgets.map(b => ({
     name: b.sector,
@@ -79,12 +80,20 @@ const Dashboard: React.FC<{ user: any }> = ({ user }) => {
           icon={<Clock size={20} />} 
           color="#f59e0b"
         />
+        {user.role === 'ADMIN' && (
+          <StatCard 
+            title="Planejamento Anual" 
+            value={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalAnnualBudget)} 
+            trend="Meta Total" 
+            icon={<TrendingUp size={20} />} 
+            color="#ec4899"
+          />
+        )}
         {user.name !== 'Afonso' && (
           <StatCard 
-            title="Budget Restante" 
-            value={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalAllocated - totalSpent)} 
-            trend="-5%" 
-            trendUp={false} 
+            title="Disponível no Mês" 
+            value={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalMonthlyBudget - totalSpent)} 
+            trend="Saldo Atual" 
             icon={<CheckCircle size={20} />} 
             color="#10b981"
           />
@@ -98,26 +107,18 @@ const Dashboard: React.FC<{ user: any }> = ({ user }) => {
             <h3 style={{ marginBottom: '20px' }}>Evolução Mensal: Budget vs Realizado</h3>
             <div style={{ height: '300px' }}>
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={monthlyData}>
-                  <defs>
-                    <linearGradient id="colorBudget" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.1}/>
-                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
-                    </linearGradient>
-                    <linearGradient id="colorSpent" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.1}/>
-                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
+                <BarChart data={monthlyData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis dataKey="month" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `R$ ${value/1000}k`} />
+                  <XAxis dataKey="month" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `R$ ${val/1000}k`} />
                   <Tooltip 
-                    contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }}
+                    contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px' }}
+                    itemStyle={{ fontSize: '12px' }}
+                    formatter={(value: any) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)}
                   />
-                  <Area type="monotone" dataKey="budget" name="Orçado" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorBudget)" />
-                  <Area type="monotone" dataKey="spent" name="Realizado" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorSpent)" />
-                </AreaChart>
+                  <Bar dataKey="budget" name="Planejado" fill="var(--primary)" radius={[4, 4, 0, 0]} barSize={20} />
+                  <Bar dataKey="spent" name="Realizado" fill="var(--success)" radius={[4, 4, 0, 0]} barSize={20} />
+                </BarChart>
               </ResponsiveContainer>
             </div>
           </div>

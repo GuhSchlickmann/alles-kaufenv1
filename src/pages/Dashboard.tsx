@@ -12,6 +12,8 @@ const Dashboard: React.FC<{ user: any }> = ({ user }) => {
   const [purchases, setPurchases] = useState<any[]>([]);
   const [budgets, setBudgets] = useState<any[]>([]);
   const [monthlyData, setMonthlyData] = useState<any[]>([]);
+  const [selectedSector, setSelectedSector] = useState<string>('TODOS');
+  const [allSectors, setAllSectors] = useState<any[]>([]);
 
   useEffect(() => {
     const sharedSectors = ['Marketing', 'Comercial', 'Eventos'];
@@ -48,11 +50,24 @@ const Dashboard: React.FC<{ user: any }> = ({ user }) => {
     fetch(`${API_URL}/stats/monthly`)
       .then(res => res.json())
       .then(data => setMonthlyData(data));
+
+    fetch(`${API_URL}/sectors`)
+      .then(res => res.json())
+      .then(data => setAllSectors(data));
   }, [user]);
 
-  const totalSpent = budgets.reduce((acc, curr) => acc + parseFloat(curr.spent || 0), 0);
-  const totalMonthlyBudget = budgets.reduce((acc, curr) => acc + parseFloat(curr.monthly_budget || 0), 0);
-  const totalAnnualBudget = budgets.reduce((acc, curr) => acc + parseFloat(curr.annual_budget || 0), 0);
+  // Filtragem Dinâmica
+  const filteredPurchases = selectedSector === 'TODOS' 
+    ? purchases 
+    : purchases.filter(p => p.sector === selectedSector);
+
+  const filteredBudgets = selectedSector === 'TODOS' 
+    ? budgets 
+    : budgets.filter(b => b.sector === selectedSector);
+
+  const totalSpent = filteredBudgets.reduce((acc, curr) => acc + parseFloat(curr.spent || 0), 0);
+  const totalMonthlyBudget = filteredBudgets.reduce((acc, curr) => acc + parseFloat(curr.monthly_budget || 0), 0);
+  const totalAnnualBudget = filteredBudgets.reduce((acc, curr) => acc + parseFloat(curr.annual_budget || 0), 0);
 
   const sectorPieData = budgets.map(b => ({
     name: b.sector,
@@ -61,6 +76,22 @@ const Dashboard: React.FC<{ user: any }> = ({ user }) => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      {/* Filtro de Setor */}
+      {(user.role === 'ADMIN' || user.role === 'FINANCE') && (
+        <div className="card" style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-muted)' }}>Filtrar por Setor:</span>
+          <select 
+            value={selectedSector} 
+            onChange={(e) => setSelectedSector(e.target.value)}
+            style={{ width: '200px', marginBottom: 0 }}
+          >
+            <option value="TODOS">Todos os Setores</option>
+            {allSectors.map(s => (
+              <option key={s.sector} value={s.sector}>{s.sector}</option>
+            ))}
+          </select>
+        </div>
+      )}
       {/* Stats Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px' }}>
         {user.name !== 'Afonso' && (
@@ -75,7 +106,7 @@ const Dashboard: React.FC<{ user: any }> = ({ user }) => {
         )}
         <StatCard 
           title="Pendentes" 
-          value={purchases.filter(p => p.status === 'PENDING').length.toString()} 
+          value={filteredPurchases.filter(p => p.status === 'PENDING').length.toString()} 
           trend="Aguardando" 
           icon={<Clock size={20} />} 
           color="#f59e0b"
@@ -121,6 +152,11 @@ const Dashboard: React.FC<{ user: any }> = ({ user }) => {
                 </BarChart>
               </ResponsiveContainer>
             </div>
+            {selectedSector !== 'TODOS' && (
+               <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '12px', textAlign: 'center' }}>
+                 * Exibindo orçamento mensal planejado da empresa vs gasto real do setor {selectedSector}.
+               </p>
+            )}
           </div>
 
           <div className="card">

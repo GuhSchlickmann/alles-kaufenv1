@@ -16,7 +16,6 @@ const PurchaseRequests: React.FC<{
   const [rejectId, setRejectId] = useState<number | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [availableSectors, setAvailableSectors] = useState<any[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [filterStatus, setFilterStatus] = useState('ALL');
   const [filterSector, setFilterSector] = useState('ALL');

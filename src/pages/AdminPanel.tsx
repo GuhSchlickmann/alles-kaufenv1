@@ -23,19 +23,15 @@ const AdminPanel: React.FC<{ user: any }> = ({ user }) => {
     annual_budget: '0'
   });
 
-  const [monthlyStats, setMonthlyStats] = useState<any[]>([]);
-
   const fetchData = async () => {
     try {
-      const [uRes, sRes, mRes] = await Promise.all([
+      const [uRes, sRes] = await Promise.all([
         fetch(`${API_URL}/users`),
-        fetch(`${API_URL}/sectors`),
-        fetch(`${API_URL}/stats/monthly`)
+        fetch(`${API_URL}/sectors`)
       ]);
-      const [uData, sData, mData] = await Promise.all([uRes.json(), sRes.json(), mRes.json()]);
+      const [uData, sData] = await Promise.all([uRes.json(), sRes.json()]);
       setUsers(uData);
       setSectors(sData);
-      setMonthlyStats(mData);
     } catch (err) {
       console.error('Erro ao buscar dados:', err);
     } finally {
@@ -100,13 +96,6 @@ const AdminPanel: React.FC<{ user: any }> = ({ user }) => {
     }
   };
 
-  const handleUpdateMonthlyBudget = async (month: string, budget: number) => {
-    await fetch(`${API_URL}/stats/monthly/update`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ month, budget })
-    });
-    fetchData();
   };
 
   if (user.sector !== 'TI') {
@@ -236,48 +225,6 @@ const AdminPanel: React.FC<{ user: any }> = ({ user }) => {
                         <Trash2 size={16} />
                       </button>
                     )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Monthly Planning Table */}
-      <div className="card">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-          <TrendingUp size={20} style={{ color: 'var(--primary)' }} />
-          <h3 style={{ fontSize: '18px' }}>Planejamento Mensal (Sazonalidade)</h3>
-        </div>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ textAlign: 'left', color: 'var(--text-muted)', fontSize: '14px', borderBottom: '1px solid var(--border)' }}>
-                <th style={{ padding: '12px' }}>Mês</th>
-                <th>Teto de Gasto (R$)</th>
-                <th>Status Atual</th>
-              </tr>
-            </thead>
-            <tbody>
-              {monthlyStats.map(m => (
-                <tr key={m.month} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '14px' }}>
-                  <td style={{ padding: '16px 12px', fontWeight: '600' }}>{m.month}</td>
-                  <td>
-                    <input 
-                      type="number" 
-                      defaultValue={m.budget}
-                      onBlur={(e) => handleUpdateMonthlyBudget(m.month, parseFloat(e.target.value))}
-                      style={{ width: '120px', padding: '6px', fontSize: '13px' }}
-                    />
-                  </td>
-                  <td>
-                    <span className="badge" style={{ 
-                      background: m.spent > m.budget ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
-                      color: m.spent > m.budget ? '#ef4444' : '#10b981'
-                    }}>
-                      {m.spent > m.budget ? 'Excedido' : 'Dentro do limite'}
-                    </span>
                   </td>
                 </tr>
               ))}

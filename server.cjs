@@ -19,7 +19,7 @@ const dbConfig = process.env.DATABASE_URL ? {
 } : {
   client: 'sqlite3',
   connection: {
-    filename: "./data_v12.sqlite"
+    filename: "./data_v13.sqlite"
   },
   useNullAsDefault: true
 };
@@ -112,10 +112,12 @@ async function initDb() {
 
   const hasMonthlyBudgets = await knex.schema.hasTable('monthly_budgets');
   if (!hasMonthlyBudgets) {
-    await knex.schema.createTable('monthly_budgets', (table) => {
-      table.string('month').primary();
+    await knex.schema.createTable('sector_seasonality', (table) => {
+      table.string('sector');
+      table.string('month');
       table.decimal('budget').defaultTo(0);
       table.decimal('spent').defaultTo(0);
+      table.primary(['sector', 'month']);
     });
 
     // Seed months with real-world empty starting state
@@ -234,20 +236,29 @@ app.patch('/api/purchases/:id/status', async (req, res) => {
   res.json({ success: true });
 });
 
-app.get('/api/stats/monthly', async (req, res) => {
+app.get('/api/seasonality/:sector', async (req, res) => {
+  const { sector } = req.params;
   const monthOrder = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
   
-  const stats = await knex('monthly_budgets').select('*');
+  let stats;
+  if (sector === 'ALL' || sector === 'TODOS') {
+    // Agrupa e soma por mês
+    stats = await knex('sector_seasonality')
+      .select('month')
+      .sum('budget as budget')
+      .sum('spent as spent')
+      .groupBy('month');
+  } else {
+    stats = await knex('sector_seasonality').where({ sector }).select('*');
+  }
   
-  // Ordena os meses corretamente
   const sortedStats = stats.sort((a, b) => monthOrder.indexOf(a.month) - monthOrder.indexOf(b.month));
-  
   res.json(sortedStats);
 });
 
-app.post('/api/stats/monthly/update', async (req, res) => {
-  const { month, budget } = req.body;
-  await knex('monthly_budgets').where({ month }).update({ budget });
+app.post('/api/seasonality/update', async (req, res) => {
+  const { sector, month, budget } = req.body;
+  await knex('sector_seasonality').where({ sector, month }).update({ budget });
   res.json({ success: true });
 });
 

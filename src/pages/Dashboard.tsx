@@ -47,14 +47,14 @@ const Dashboard: React.FC<{ user: any }> = ({ user }) => {
         }
       });
 
-    fetch(`${API_URL}/stats/monthly`)
+    fetch(`${API_URL}/seasonality/${selectedSector}`)
       .then(res => res.json())
       .then(data => setMonthlyData(data));
 
     fetch(`${API_URL}/sectors`)
       .then(res => res.json())
       .then(data => setAllSectors(data));
-  }, [user]);
+  }, [user, selectedSector]);
 
   // Filtragem Dinâmica
   const filteredPurchases = selectedSector === 'TODOS' 

@@ -63,15 +63,22 @@ async function initDb() {
   if (!hasBudgets) {
     await knex.schema.createTable('budgets', (table) => {
       table.string('sector').primary();
-      table.decimal('allocated').defaultTo(0);
+      table.decimal('monthly_budget').defaultTo(0);
+      table.decimal('annual_budget').defaultTo(0);
       table.decimal('spent').defaultTo(0);
     });
 
     // Initial sectors
     await knex('budgets').insert([
-      { sector: 'Operação' }, { sector: 'Bilheteria' }, { sector: 'Manutenção' },
-      { sector: 'Marketing' }, { sector: 'Comercial' }, { sector: 'Eventos' },
-      { sector: 'Estação' }, { sector: 'Financeiro' }, { sector: 'TI' }
+      { sector: 'Operação', monthly_budget: 0, annual_budget: 0 },
+      { sector: 'Bilheteria', monthly_budget: 0, annual_budget: 0 },
+      { sector: 'Manutenção', monthly_budget: 0, annual_budget: 0 },
+      { sector: 'Financeiro', monthly_budget: 0, annual_budget: 0 },
+      { sector: 'Marketing', monthly_budget: 0, annual_budget: 0 },
+      { sector: 'Comercial', monthly_budget: 0, annual_budget: 0 },
+      { sector: 'Eventos', monthly_budget: 0, annual_budget: 0 },
+      { sector: 'Estação', monthly_budget: 0, annual_budget: 0 },
+      { sector: 'TI', monthly_budget: 0, annual_budget: 0 }
     ]);
   }
 
@@ -226,8 +233,8 @@ app.patch('/api/purchases/:id/status', async (req, res) => {
 app.get('/api/stats/monthly', async (req, res) => {
   const monthOrder = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
   
-  // Pega a soma total de todos os budgets dos setores
-  const totalAllocatedResult = await knex('budgets').sum('allocated as total');
+  // Pega a soma total de todos os budgets mensais dos setores
+  const totalAllocatedResult = await knex('budgets').sum('monthly_budget as total');
   const totalAllocated = parseFloat(totalAllocatedResult[0].total || 0);
 
   const stats = await knex('monthly_budgets').select('*');
@@ -237,7 +244,7 @@ app.get('/api/stats/monthly', async (req, res) => {
     .sort((a, b) => monthOrder.indexOf(a.month) - monthOrder.indexOf(b.month))
     .map(s => ({
       ...s,
-      allocated: totalAllocated // Usa o valor real dos setores
+      allocated: totalAllocated 
     }));
   
   res.json(sortedStats);
@@ -276,10 +283,11 @@ app.get('/api/sectors', async (req, res) => {
 });
 
 app.post('/api/sectors', async (req, res) => {
-  const { sector, allocated } = req.body;
+  const { sector, monthly_budget, annual_budget } = req.body;
   await knex('budgets').insert({ 
     sector, 
-    allocated: allocated || 0,
+    monthly_budget: monthly_budget || 0,
+    annual_budget: annual_budget || 0,
     spent: 0 
   });
   res.json({ success: true });

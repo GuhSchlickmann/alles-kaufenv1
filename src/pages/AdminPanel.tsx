@@ -19,7 +19,8 @@ const AdminPanel: React.FC<{ user: any }> = ({ user }) => {
   // New Sector Form State
   const [newSector, setNewSector] = useState({
     name: '',
-    budget: '0'
+    monthly_budget: '0',
+    annual_budget: '0'
   });
 
   const fetchData = async () => {
@@ -63,9 +64,13 @@ const AdminPanel: React.FC<{ user: any }> = ({ user }) => {
     await fetch(`${API_URL}/sectors`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sector: newSector.name, allocated: parseFloat(newSector.budget) })
+      body: JSON.stringify({ 
+        sector: newSector.name, 
+        monthly_budget: parseFloat(newSector.monthly_budget),
+        annual_budget: parseFloat(newSector.annual_budget)
+      })
     });
-    setNewSector({ name: '', budget: '0' });
+    setNewSector({ name: '', monthly_budget: '0', annual_budget: '0' });
     fetchData();
     alert('Novo setor criado com sucesso!');
   };
@@ -168,9 +173,15 @@ const AdminPanel: React.FC<{ user: any }> = ({ user }) => {
               <label style={{ display: 'block', fontSize: '13px', marginBottom: '6px', color: 'var(--text-muted)' }}>Nome do Setor</label>
               <input required value={newSector.name} onChange={e => setNewSector({...newSector, name: e.target.value})} placeholder="Ex: Recursos Humanos" />
             </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '13px', marginBottom: '6px', color: 'var(--text-muted)' }}>Budget Inicial (R$)</label>
-              <input type="number" required value={newSector.budget} onChange={e => setNewSector({...newSector, budget: e.target.value})} placeholder="0.00" />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', marginBottom: '6px', color: 'var(--text-muted)' }}>Budget Mensal (R$)</label>
+                <input type="number" required value={newSector.monthly_budget} onChange={e => setNewSector({...newSector, monthly_budget: e.target.value})} placeholder="0.00" />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', marginBottom: '6px', color: 'var(--text-muted)' }}>Budget Anual (R$)</label>
+                <input type="number" required value={newSector.annual_budget} onChange={e => setNewSector({...newSector, annual_budget: e.target.value})} placeholder="0.00" />
+              </div>
             </div>
 
             <button type="submit" style={{ background: 'var(--success)', color: 'white', padding: '12px', fontWeight: 'bold', marginTop: '8px' }}>
@@ -191,7 +202,8 @@ const AdminPanel: React.FC<{ user: any }> = ({ user }) => {
             <thead>
               <tr style={{ textAlign: 'left', color: 'var(--text-muted)', fontSize: '14px', borderBottom: '1px solid var(--border)' }}>
                 <th style={{ padding: '12px' }}>Setor</th>
-                <th>Orçamento Atual</th>
+                <th>Mensal</th>
+                <th>Anual</th>
                 <th style={{ textAlign: 'right' }}>Ações</th>
               </tr>
             </thead>
@@ -199,7 +211,8 @@ const AdminPanel: React.FC<{ user: any }> = ({ user }) => {
               {sectors.map(s => (
                 <tr key={s.sector} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '14px' }}>
                   <td style={{ padding: '16px 12px', fontWeight: '600' }}>{s.sector}</td>
-                  <td>R$ {parseFloat(s.allocated || 0).toLocaleString()}</td>
+                  <td>R$ {parseFloat(s.monthly_budget || 0).toLocaleString()}</td>
+                  <td>R$ {parseFloat(s.annual_budget || 0).toLocaleString()}</td>
                   <td style={{ textAlign: 'right' }}>
                     {user.name === 'Gustavo' && (
                       <button 

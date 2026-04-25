@@ -23,15 +23,19 @@ const AdminPanel: React.FC<{ user: any }> = ({ user }) => {
     annual_budget: '0'
   });
 
+  const [monthlyStats, setMonthlyStats] = useState<any[]>([]);
+
   const fetchData = async () => {
     try {
-      const [uRes, sRes] = await Promise.all([
+      const [uRes, sRes, mRes] = await Promise.all([
         fetch(`${API_URL}/users`),
-        fetch(`${API_URL}/sectors`)
+        fetch(`${API_URL}/sectors`),
+        fetch(`${API_URL}/seasonality/ALL`)
       ]);
-      const [uData, sData] = await Promise.all([uRes.json(), sRes.json()]);
+      const [uData, sData, mData] = await Promise.all([uRes.json(), sRes.json(), mRes.json()]);
       setUsers(uData);
       setSectors(sData);
+      setMonthlyStats(mData);
     } catch (err) {
       console.error('Erro ao buscar dados:', err);
     } finally {
@@ -208,24 +212,30 @@ const AdminPanel: React.FC<{ user: any }> = ({ user }) => {
               </tr>
             </thead>
             <tbody>
-              {sectors.map(s => (
-                <tr key={s.sector} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '14px' }}>
-                  <td style={{ padding: '16px 12px', fontWeight: '600' }}>{s.sector}</td>
-                  <td>R$ {parseFloat(s.monthly_budget || 0).toLocaleString()}</td>
-                  <td>R$ {parseFloat(s.annual_budget || 0).toLocaleString()}</td>
-                  <td style={{ textAlign: 'right' }}>
-                    {user.name === 'Gustavo' && (
-                      <button 
-                        onClick={() => handleDeleteSector(s.sector)}
-                        className="glass" 
-                        style={{ padding: '6px', color: 'var(--danger)' }}
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
+              {sectors.map(s => {
+                const currentMonthName = new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(new Date()).replace('.', '');
+                const capitalizedMonth = currentMonthName.charAt(0).toUpperCase() + currentMonthName.slice(1);
+                const seasonalMonth = monthlyStats.find(m => m.sector === s.sector && m.month === capitalizedMonth);
+
+                return (
+                  <tr key={s.sector} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '14px' }}>
+                    <td style={{ padding: '16px 12px', fontWeight: '600' }}>{s.sector}</td>
+                    <td>R$ {parseFloat(seasonalMonth?.budget || 0).toLocaleString()}</td>
+                    <td>R$ {parseFloat(s.annual_budget || 0).toLocaleString()}</td>
+                    <td style={{ textAlign: 'right' }}>
+                      {user.name === 'Gustavo' && (
+                        <button 
+                          onClick={() => handleDeleteSector(s.sector)}
+                          className="glass" 
+                          style={{ padding: '6px', color: 'var(--danger)' }}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

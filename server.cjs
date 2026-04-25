@@ -19,7 +19,7 @@ const dbConfig = process.env.DATABASE_URL ? {
 } : {
   client: 'sqlite3',
   connection: {
-    filename: "./data_v15.sqlite"
+    filename: "./data_v17.sqlite"
   },
   useNullAsDefault: true
 };

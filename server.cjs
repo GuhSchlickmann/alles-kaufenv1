@@ -19,7 +19,7 @@ const dbConfig = process.env.DATABASE_URL ? {
 } : {
   client: 'sqlite3',
   connection: {
-    filename: "./data_v11.sqlite"
+    filename: "./data_v12.sqlite"
   },
   useNullAsDefault: true
 };
@@ -155,8 +155,8 @@ app.post('/api/login', async (req, res) => {
 
 // Update Budget
 app.post('/api/budgets/update', async (req, res) => {
-  const { sector, allocated } = req.body;
-  await knex('budgets').where({ sector }).update({ allocated });
+  const { sector, monthly_budget } = req.body;
+  await knex('budgets').where({ sector }).update({ monthly_budget });
   res.json({ success: true });
 });
 

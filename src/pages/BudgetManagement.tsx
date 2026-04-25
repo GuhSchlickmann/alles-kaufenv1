@@ -34,7 +34,7 @@ const BudgetManagement: React.FC<{ user: any }> = ({ user }) => {
     await fetch(`${API_URL}/budgets/update`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sector, allocated: parseFloat(value) })
+      body: JSON.stringify({ sector, monthly_budget: parseFloat(value) })
     });
     
     setEditingValue({ ...editingValue, [sector]: '' });
@@ -54,20 +54,24 @@ const BudgetManagement: React.FC<{ user: any }> = ({ user }) => {
             <div style={{ position: 'relative', height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
               <div style={{ 
                 position: 'absolute', left: 0, top: 0, height: '100%', 
-                width: `${(b.spent / b.allocated) * 100}%`,
-                background: (b.spent / b.allocated) > 0.9 ? 'var(--danger)' : 'var(--primary)',
+                width: `${(b.spent / b.monthly_budget) * 100}%`,
+                background: (b.spent / b.monthly_budget) > 0.9 ? 'var(--danger)' : 'var(--primary)',
                 transition: 'width 1s ease-in-out'
               }}></div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
               <div>
-                <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Alocado</div>
-                <div style={{ fontWeight: '600' }}>R$ {parseFloat(b.allocated).toLocaleString()}</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Mensal</div>
+                <div style={{ fontWeight: '600', fontSize: '13px' }}>R$ {parseFloat(b.monthly_budget || 0).toLocaleString()}</div>
               </div>
               <div>
-                <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Gasto</div>
-                <div style={{ fontWeight: '600' }}>R$ {parseFloat(b.spent).toLocaleString()}</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Anual</div>
+                <div style={{ fontWeight: '600', fontSize: '13px' }}>R$ {parseFloat(b.annual_budget || 0).toLocaleString()}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Gasto</div>
+                <div style={{ fontWeight: '600', fontSize: '13px' }}>R$ {parseFloat(b.spent || 0).toLocaleString()}</div>
               </div>
             </div>
 
@@ -96,7 +100,7 @@ const BudgetManagement: React.FC<{ user: any }> = ({ user }) => {
               alignItems: 'center'
             }}>
               <span style={{ fontSize: '12px' }}>Previsão Próximo Mês:</span>
-              <span style={{ fontWeight: '700', color: (b.spent * 1.1) > b.allocated ? 'var(--warning)' : 'var(--success)' }}>
+              <span style={{ fontWeight: '700', color: (b.spent * 1.1) > b.monthly_budget ? 'var(--warning)' : 'var(--success)' }}>
                 R$ {(b.spent * 1.1).toLocaleString()}
               </span>
             </div>

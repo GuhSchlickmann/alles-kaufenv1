@@ -13,11 +13,17 @@ const BudgetManagement: React.FC<{ user: any }> = ({ user }) => {
     fetch(`${API_URL}/budgets`)
       .then(res => res.json())
       .then(data => {
-        if (user.role === 'FINANCE' || user.role === 'ADMIN') {
+        const isTI = user.sector === 'TI';
+        const isFinance = user.role === 'FINANCE';
+
+        if (isTI || isFinance) {
+          // TI (Gustavo) e Financeiro veem tudo
           setBudgets(data);
         } else if (isSharedUser) {
+          // Setores compartilhados
           setBudgets(data.filter((b: any) => sharedSectors.includes(b.sector)));
         } else {
+          // Resto vê apenas o seu próprio setor
           setBudgets(data.filter((b: any) => b.sector === user.sector));
         }
       });

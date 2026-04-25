@@ -145,29 +145,28 @@ const BudgetManagement: React.FC<{ user: any }> = ({ user }) => {
               
               const seasonalTotal = seasonality.reduce((acc, curr) => acc + parseFloat(curr.budget || 0), 0);
               const annualTeto = parseFloat(myBudget.annual_budget || 0);
-              const diff = Math.abs(seasonalTotal - annualTeto);
-              const isMatch = diff < 0.1;
+              const isOver = seasonalTotal > (annualTeto + 0.1); // Margem para erros de float
 
               return (
                 <div style={{ 
                   padding: '8px 16px', 
                   borderRadius: '8px', 
                   fontSize: '13px',
-                  background: isMatch ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                  color: isMatch ? '#10b981' : '#ef4444',
+                  background: isOver ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+                  color: isOver ? '#ef4444' : '#10b981',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
                   border: '1px solid currentColor'
                 }}>
-                  <AlertCircle size={16} />
-                  {isMatch ? (
-                    <strong>Planejamento 100% batendo com o Anual!</strong>
+                  {isOver ? <AlertCircle size={16} /> : <CheckCircle size={16} />}
+                  {seasonalTotal > annualTeto ? (
+                    <span>
+                      <strong>Atenção:</strong> A soma dos meses (R$ {seasonalTotal.toLocaleString()}) <strong>EXCEDEU</strong> o teto anual de R$ {annualTeto.toLocaleString()}
+                    </span>
                   ) : (
                     <span>
-                      Soma dos meses (R$ {seasonalTotal.toLocaleString()}) 
-                      {seasonalTotal > annualTeto ? ' EXCEDEU ' : ' está ABAIXO '} 
-                      do teto anual de R$ {annualTeto.toLocaleString()}
+                      <strong>Planejamento OK:</strong> Soma dos meses (R$ {seasonalTotal.toLocaleString()}) está dentro do teto anual de R$ {annualTeto.toLocaleString()}
                     </span>
                   )}
                 </div>

@@ -29,7 +29,7 @@ const BudgetManagement: React.FC<{ user: any }> = ({ user }) => {
         }
       });
 
-    fetch(`${API_URL}/seasonality/${(user.sector === 'TI' || user.role === 'FINANCE') ? 'ALL' : user.sector}`)
+    fetch(`${API_URL}/seasonality/${user.sector}`)
       .then(res => res.json())
       .then(data => setSeasonality(data));
   };
@@ -160,7 +160,6 @@ const BudgetManagement: React.FC<{ user: any }> = ({ user }) => {
               <thead>
                 <tr style={{ textAlign: 'left', color: 'var(--text-muted)', fontSize: '14px', borderBottom: '1px solid var(--border)' }}>
                   <th style={{ padding: '12px' }}>Mês</th>
-                  { (user.sector === 'TI' || user.role === 'FINANCE') && <th>Setor</th> }
                   <th>Teto de Gasto (R$)</th>
                   <th>Status Atual</th>
                 </tr>
@@ -169,7 +168,6 @@ const BudgetManagement: React.FC<{ user: any }> = ({ user }) => {
                 {seasonality.map(m => (
                   <tr key={`${m.sector}-${m.month}`} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '14px' }}>
                     <td style={{ padding: '16px 12px', fontWeight: '600' }}>{m.month}</td>
-                    { (user.sector === 'TI' || user.role === 'FINANCE') && <td>{m.sector}</td> }
                     <td>
                       <input 
                         type="number" 

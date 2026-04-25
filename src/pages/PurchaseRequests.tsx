@@ -183,11 +183,9 @@ const PurchaseRequests: React.FC<{
       {/* Toolbar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', gap: '12px' }}>
-          {(user.sector === 'TI' || user.role === 'FINANCE') && (
-            <button className="glass" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }} onClick={() => setShowFilters(!showFilters)}>
-              <Filter size={16} /> Filtros
-            </button>
-          )}
+          <button className="glass" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }} onClick={() => setShowFilters(!showFilters)}>
+            <Filter size={16} /> Filtros
+          </button>
           <button 
             className="glass" 
             style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}
@@ -214,7 +212,7 @@ const PurchaseRequests: React.FC<{
             </select>
           </div>
           
-          {(user.role === 'ADMIN' || user.role === 'FINANCE') && (
+          {(user.sector === 'TI' || user.role === 'FINANCE') && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Setor</label>
               <select 

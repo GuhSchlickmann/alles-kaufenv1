@@ -96,7 +96,7 @@ async function initDb() {
     // Seed users
     await knex('users').insert([
       { username: 'afonso', password: '123', name: 'Afonso', role: 'LEADER', sector: 'Manutenção' },
-      { username: 'julio', password: '123', name: 'Julio', role: 'ADMIN', sector: 'Manutenção' },
+      { username: 'julio', password: '123', name: 'Julio', role: 'LEADER', sector: 'Manutenção' },
       { username: 'felipe', password: '123', name: 'Felipe', role: 'LEADER', sector: 'Bilheteria' },
       { username: 'paula', password: '123', name: 'Paula', role: 'FINANCE', sector: 'Financeiro' },
       { username: 'juan', password: '123', name: 'Juan', role: 'FINANCE', sector: 'Financeiro' },

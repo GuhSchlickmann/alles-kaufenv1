@@ -45,7 +45,7 @@ const PurchaseRequests: React.FC<{
     fetch(`${API_URL}/purchases`)
       .then(res => res.json())
       .then(data => {
-        if (user.role === 'FINANCE' || user.role === 'ADMIN') {
+        if (user.sector === 'TI' || user.role === 'FINANCE') {
           setPurchases(data);
         } else if (isSharedUser) {
           setPurchases(data.filter((p: any) => sharedSectors.includes(p.sector)));
@@ -183,7 +183,7 @@ const PurchaseRequests: React.FC<{
       {/* Toolbar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', gap: '12px' }}>
-          {(user.role === 'ADMIN' || user.role === 'FINANCE') && (
+          {(user.sector === 'TI' || user.role === 'FINANCE') && (
             <button className="glass" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }} onClick={() => setShowFilters(!showFilters)}>
               <Filter size={16} /> Filtros
             </button>

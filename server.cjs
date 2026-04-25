@@ -238,10 +238,34 @@ app.patch('/api/purchases/:id/status', async (req, res) => {
     const purchase = await knex('purchases').where({ id }).first();
     await knex('budgets').where({ sector: purchase.sector }).increment('spent', purchase.amount);
     
-    // Update monthly stats
+    // Update monthly stats (Sazonalidade por Setor)
     const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
     const currentMonth = monthNames[new Date().getMonth()];
-    await knex('monthly_budgets').where({ month: currentMonth }).increment('spent', purchase.amount);
+    
+    await knex('sector_seasonality')
+      .where({ sector: purchase.sector, month: currentMonth })
+      .increment('spent', purchase.amount);
+
+    // Verificar se o budget mensal está próximo do fim ou estourou
+    const sea = await knex('sector_seasonality')
+      .where({ sector: purchase.sector, month: currentMonth })
+      .first();
+
+    const remaining = sea.budget - sea.spent;
+
+    if (remaining <= 500 && remaining > 0) {
+      await knex('notifications').insert({
+        user: purchase.requestedBy, 
+        title: '⚠️ Orçamento Quase no Fim',
+        message: `Seu orçamento de ${currentMonth} para ${purchase.sector} está acabando! Restam R$ ${remaining.toLocaleString()}.`
+      });
+    } else if (remaining <= 0) {
+      await knex('notifications').insert({
+        user: purchase.requestedBy,
+        title: '🚫 Orçamento Excedido',
+        message: `O orçamento de ${currentMonth} do setor ${purchase.sector} foi excedido com esta compra.`
+      });
+    }
     
     // Notificar solicitante sobre aprovação
     await knex('notifications').insert({

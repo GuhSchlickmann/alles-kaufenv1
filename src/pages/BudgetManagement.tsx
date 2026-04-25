@@ -40,19 +40,33 @@ const BudgetManagement: React.FC<{ user: any }> = ({ user }) => {
 
   const handleUpdateBudget = async (sector: string, type: 'monthly' | 'annual') => {
     const value = editingValue[sector]?.[type];
-    if (!value) return;
-
-    await fetch(`${API_URL}/budgets/update`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        sector, 
-        [type === 'monthly' ? 'monthly_budget' : 'annual_budget']: parseFloat(value) 
-      })
-    });
     
-    setEditingValue({ ...editingValue, [sector]: { ...editingValue[sector], [type]: '' } });
-    fetchData();
+    // Validação básica: não permitir vazio ou não numérico
+    if (!value || isNaN(parseFloat(value))) {
+      alert('Por favor, insira um valor numérico válido.');
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/budgets/update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          sector, 
+          [type === 'monthly' ? 'monthly_budget' : 'annual_budget']: parseFloat(value) 
+        })
+      });
+
+      if (res.ok) {
+        setEditingValue({ ...editingValue, [sector]: { ...editingValue[sector], [type]: '' } });
+        fetchData();
+      } else {
+        alert('Erro ao salvar. Verifique a conexão com o servidor.');
+      }
+    } catch (err) {
+      console.error('Erro no update:', err);
+      alert('Erro de conexão com o servidor.');
+    }
   };
 
   const handleUpdateSeasonality = async (month: string, budget: number, sector: string) => {

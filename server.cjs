@@ -159,15 +159,29 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Update Budget
+// Update Budget (Anual e Sazonal do Mês Atual)
 app.post('/api/budgets/update', async (req, res) => {
   const { sector, monthly_budget, annual_budget } = req.body;
-  const updateData = {};
-  if (monthly_budget !== undefined) updateData.monthly_budget = monthly_budget;
-  if (annual_budget !== undefined) updateData.annual_budget = annual_budget;
   
-  await knex('budgets').where({ sector }).update(updateData);
-  res.json({ success: true });
+  try {
+    if (annual_budget !== undefined && !isNaN(annual_budget)) {
+      await knex('budgets').where({ sector }).update({ annual_budget });
+    }
+
+    if (monthly_budget !== undefined && !isNaN(monthly_budget)) {
+      const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      const currentMonth = monthNames[new Date().getMonth()];
+      
+      await knex('sector_seasonality')
+        .where({ sector, month: currentMonth })
+        .update({ budget: monthly_budget });
+    }
+    
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Erro ao atualizar budget:', err);
+    res.status(500).json({ error: 'Erro interno ao salvar os valores' });
+  }
 });
 
 // Rota para resetar senha de usuário (Padrão: 123)

@@ -55,6 +55,7 @@
     },
     "files": [
       "electron-main.cjs",
+      "dist/**/*",
       "public/**/*"
     ],
     "asar": true

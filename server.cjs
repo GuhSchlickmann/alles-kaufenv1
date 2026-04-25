@@ -155,8 +155,12 @@ app.post('/api/login', async (req, res) => {
 
 // Update Budget
 app.post('/api/budgets/update', async (req, res) => {
-  const { sector, monthly_budget } = req.body;
-  await knex('budgets').where({ sector }).update({ monthly_budget });
+  const { sector, monthly_budget, annual_budget } = req.body;
+  const updateData = {};
+  if (monthly_budget !== undefined) updateData.monthly_budget = monthly_budget;
+  if (annual_budget !== undefined) updateData.annual_budget = annual_budget;
+  
+  await knex('budgets').where({ sector }).update(updateData);
   res.json({ success: true });
 });
 

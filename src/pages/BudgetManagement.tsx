@@ -4,7 +4,7 @@ import { API_URL } from '../config';
 
 const BudgetManagement: React.FC<{ user: any }> = ({ user }) => {
   const [budgets, setBudgets] = useState<any[]>([]);
-  const [editingValue, setEditingValue] = useState<{ [key: string]: string }>({});
+  const [editingValue, setEditingValue] = useState<{ [key: string]: { monthly?: string, annual?: string } }>({});
 
   const fetchData = () => {
     const sharedSectors = ['Marketing', 'Comercial', 'Eventos'];
@@ -27,17 +27,20 @@ const BudgetManagement: React.FC<{ user: any }> = ({ user }) => {
     fetchData();
   }, [user]);
 
-  const handleUpdateBudget = async (sector: string) => {
-    const value = editingValue[sector];
+  const handleUpdateBudget = async (sector: string, type: 'monthly' | 'annual') => {
+    const value = editingValue[sector]?.[type];
     if (!value) return;
 
     await fetch(`${API_URL}/budgets/update`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sector, monthly_budget: parseFloat(value) })
+      body: JSON.stringify({ 
+        sector, 
+        [type === 'monthly' ? 'monthly_budget' : 'annual_budget']: parseFloat(value) 
+      })
     });
     
-    setEditingValue({ ...editingValue, [sector]: '' });
+    setEditingValue({ ...editingValue, [sector]: { ...editingValue[sector], [type]: '' } });
     fetchData();
   };
 
@@ -75,20 +78,37 @@ const BudgetManagement: React.FC<{ user: any }> = ({ user }) => {
               </div>
             </div>
 
-            <div style={{ marginTop: '8px', display: 'flex', gap: '8px' }}>
-              <input 
-                type="number" 
-                placeholder="Novo Budget" 
-                style={{ flex: 1, padding: '8px' }}
-                value={editingValue[b.sector] || ''}
-                onChange={e => setEditingValue({ ...editingValue, [b.sector]: e.target.value })}
-              />
-              <button 
-                onClick={() => handleUpdateBudget(b.sector)}
-                style={{ background: 'var(--primary)', color: 'white', padding: '0 12px', fontSize: '12px' }}
-              >
-                Salvar
-              </button>
+            <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input 
+                  type="number" 
+                  placeholder="Novo Mensal" 
+                  style={{ flex: 1, padding: '8px', fontSize: '12px' }}
+                  value={editingValue[b.sector]?.monthly || ''}
+                  onChange={e => setEditingValue({ ...editingValue, [b.sector]: { ...editingValue[b.sector], monthly: e.target.value } })}
+                />
+                <button 
+                  onClick={() => handleUpdateBudget(b.sector, 'monthly')}
+                  style={{ background: 'var(--primary)', color: 'white', padding: '0 8px', fontSize: '11px', borderRadius: '4px' }}
+                >
+                  Salvar
+                </button>
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input 
+                  type="number" 
+                  placeholder="Novo Anual" 
+                  style={{ flex: 1, padding: '8px', fontSize: '12px' }}
+                  value={editingValue[b.sector]?.annual || ''}
+                  onChange={e => setEditingValue({ ...editingValue, [b.sector]: { ...editingValue[b.sector], annual: e.target.value } })}
+                />
+                <button 
+                  onClick={() => handleUpdateBudget(b.sector, 'annual')}
+                  style={{ background: 'var(--success)', color: 'white', padding: '0 8px', fontSize: '11px', borderRadius: '4px' }}
+                >
+                  Salvar
+                </button>
+              </div>
             </div>
 
             <div style={{ 

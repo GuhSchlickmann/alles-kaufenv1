@@ -77,44 +77,25 @@ const BudgetManagement: React.FC<{ user: any }> = ({ user }) => {
             <div style={{ position: 'relative', height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
               <div style={{ 
                 position: 'absolute', left: 0, top: 0, height: '100%', 
-                width: `${(b.spent / b.monthly_budget) * 100}%`,
+                width: `${Math.min(100, (b.spent / b.monthly_budget) * 100)}%`,
                 background: (b.spent / b.monthly_budget) > 0.9 ? 'var(--danger)' : 'var(--primary)',
                 transition: 'width 1s ease-in-out'
               }}></div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
-              <div>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Mensal</div>
-                <div style={{ fontWeight: '600', fontSize: '13px' }}>R$ {parseFloat(b.monthly_budget || 0).toLocaleString()}</div>
+              <div style={{ display: 'flex', gap: '24px', marginBottom: '20px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px' }}>
+                <div>
+                  <p style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '4px' }}>Anual</p>
+                  <p style={{ fontWeight: '700', fontSize: '14px' }}>R$ {parseFloat(b.annual_budget || 0).toLocaleString()}</p>
+                </div>
+                <div>
+                  <p style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '4px' }}>Gasto</p>
+                  <p style={{ fontWeight: '700', fontSize: '14px' }}>R$ {parseFloat(b.spent || 0).toLocaleString()}</p>
+                </div>
               </div>
-              <div>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Anual</div>
-                <div style={{ fontWeight: '600', fontSize: '13px' }}>R$ {parseFloat(b.annual_budget || 0).toLocaleString()}</div>
-              </div>
-              <div>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Gasto</div>
-                <div style={{ fontWeight: '600', fontSize: '13px' }}>R$ {parseFloat(b.spent || 0).toLocaleString()}</div>
-              </div>
-            </div>
 
             <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <input 
-                  type="number" 
-                  placeholder="Novo Mensal" 
-                  style={{ flex: 1, padding: '8px', fontSize: '12px' }}
-                  value={editingValue[b.sector]?.monthly || ''}
-                  onChange={e => setEditingValue({ ...editingValue, [b.sector]: { ...editingValue[b.sector], monthly: e.target.value } })}
-                />
-                <button 
-                  onClick={() => handleUpdateBudget(b.sector, 'monthly')}
-                  style={{ background: 'var(--primary)', color: 'white', padding: '0 8px', fontSize: '11px', borderRadius: '4px' }}
-                >
-                  Salvar
-                </button>
-              </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
                 <input 
                   type="number" 
                   placeholder="Novo Anual" 

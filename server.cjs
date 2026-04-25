@@ -159,28 +159,38 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Update Budget (Anual e Sazonal do Mês Atual)
+// Update Budget (Anual e Sazonal do Mês Atual) - Reforçado para Cloud
 app.post('/api/budgets/update', async (req, res) => {
   const { sector, monthly_budget, annual_budget } = req.body;
   
   try {
     if (annual_budget !== undefined && !isNaN(annual_budget)) {
-      await knex('budgets').where({ sector }).update({ annual_budget });
+      // Garantir que o registro existe antes de dar update
+      const exists = await knex('budgets').where({ sector }).first();
+      if (exists) {
+        await knex('budgets').where({ sector }).update({ annual_budget });
+      } else {
+        await knex('budgets').insert({ sector, annual_budget, spent: 0 });
+      }
     }
 
     if (monthly_budget !== undefined && !isNaN(monthly_budget)) {
       const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
       const currentMonth = monthNames[new Date().getMonth()];
       
-      await knex('sector_seasonality')
-        .where({ sector, month: currentMonth })
-        .update({ budget: monthly_budget });
+      // Upsert para Sazonalidade
+      const seaExists = await knex('sector_seasonality').where({ sector, month: currentMonth }).first();
+      if (seaExists) {
+        await knex('sector_seasonality').where({ sector, month: currentMonth }).update({ budget: monthly_budget });
+      } else {
+        await knex('sector_seasonality').insert({ sector, month: currentMonth, budget: monthly_budget, spent: 0 });
+      }
     }
     
     res.json({ success: true });
   } catch (err) {
-    console.error('Erro ao atualizar budget:', err);
-    res.status(500).json({ error: 'Erro interno ao salvar os valores' });
+    console.error('ERRO CRÍTICO NO UPDATE:', err);
+    res.status(500).json({ error: 'Erro de banco de dados. Tente novamente.' });
   }
 });
 
@@ -377,6 +387,17 @@ app.post('/api/sectors', async (req, res) => {
     annual_budget: annual_budget || 0,
     spent: 0 
   });
+
+  // Inicializar Sazonalidade para o novo setor
+  const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+  const initialSeasonality = monthNames.map(m => ({
+    sector,
+    month: m,
+    budget: 0,
+    spent: 0
+  }));
+  await knex('sector_seasonality').insert(initialSeasonality);
+
   res.json({ success: true });
 });
 

@@ -12,9 +12,7 @@ const Dashboard: React.FC<{ user: any }> = ({ user }) => {
   const [purchases, setPurchases] = useState<any[]>([]);
   const [budgets, setBudgets] = useState<any[]>([]);
   const [monthlyData, setMonthlyData] = useState<any[]>([]);
-  const [selectedSector, setSelectedSector] = useState<string>(
-    (user.sector === 'TI' || user.role === 'FINANCE') ? 'TODOS' : user.sector
-  );
+  const [selectedSector, setSelectedSector] = useState<string>(user.sector);
   const [allSectors, setAllSectors] = useState<any[]>([]);
 
   useEffect(() => {

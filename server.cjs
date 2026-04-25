@@ -170,6 +170,18 @@ app.post('/api/budgets/update', async (req, res) => {
   res.json({ success: true });
 });
 
+// Rota para resetar senha de usuário (Padrão: 123)
+app.post('/api/admin/reset-password', async (req, res) => {
+  const { username } = req.body;
+  await knex('users')
+    .where({ username })
+    .update({ 
+      password: '123',
+      mustChangePassword: 1 
+    });
+  res.json({ success: true });
+});
+
 // Rota especializada para o Painel Admin ver o resumo dos setores
 app.get('/api/admin/sectors', async (req, res) => {
   const now = new Date();

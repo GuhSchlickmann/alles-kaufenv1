@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, UserPlus, FolderPlus, Users, Layout, Save, Trash2, AlertCircle, TrendingUp } from 'lucide-react';
+import { Shield, UserPlus, FolderPlus, Users, Layout, Save, Trash2, AlertCircle, TrendingUp, Key } from 'lucide-react';
 import { API_URL } from '../config';
 
 const AdminPanel: React.FC<{ user: any }> = ({ user }) => {
@@ -59,6 +59,21 @@ const AdminPanel: React.FC<{ user: any }> = ({ user }) => {
     setNewUser({ username: '', password: '123', name: '', role: 'LEADER', sector: '' });
     fetchData();
     alert('Usuário criado com sucesso! Senha padrão: 123');
+  };
+
+  const handleResetPassword = async (username: string) => {
+    if (!confirm(`Deseja resetar a senha de "${username}" para "123"?`)) return;
+
+    try {
+      await fetch(`${API_URL}/admin/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username })
+      });
+      alert('Senha resetada com sucesso!');
+    } catch (err) {
+      console.error('Erro ao resetar senha:', err);
+    }
   };
 
   const handleCreateSector = async (e: React.FormEvent) => {
@@ -258,7 +273,23 @@ const AdminPanel: React.FC<{ user: any }> = ({ user }) => {
                   <td><span className="badge" style={{ background: 'rgba(99, 102, 241, 0.1)', color: 'var(--primary)' }}>{u.sector}</span></td>
                   <td>{u.role}</td>
                   <td style={{ textAlign: 'right' }}>
-                    <button className="glass" style={{ padding: '6px', color: 'var(--danger)' }}><Trash2 size={16} /></button>
+                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                      <button 
+                        onClick={() => handleResetPassword(u.username)}
+                        className="glass" 
+                        style={{ padding: '6px', color: 'var(--primary)' }}
+                        title="Resetar Senha para 123"
+                      >
+                        <Key size={16} />
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteUser(u.username)}
+                        className="glass" 
+                        style={{ padding: '6px', color: 'var(--danger)' }}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

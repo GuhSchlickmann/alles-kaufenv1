@@ -159,38 +159,49 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Update Budget (Anual e Sazonal do Mês Atual) - Reforçado para Cloud
+// Update Budget (Anual e Sazonal do Mês Atual) - Diagnóstico e Segurança
 app.post('/api/budgets/update', async (req, res) => {
   const { sector, monthly_budget, annual_budget } = req.body;
   
+  console.log('--- TENTATIVA DE UPDATE BUDGET ---');
+  console.log('Setor:', sector);
+  console.log('Mensal:', monthly_budget);
+  console.log('Anual:', annual_budget);
+
   try {
-    if (annual_budget !== undefined && !isNaN(annual_budget)) {
-      // Garantir que o registro existe antes de dar update
-      const exists = await knex('budgets').where({ sector }).first();
-      if (exists) {
-        await knex('budgets').where({ sector }).update({ annual_budget });
-      } else {
-        await knex('budgets').insert({ sector, annual_budget, spent: 0 });
+    if (annual_budget !== undefined) {
+      const val = parseFloat(annual_budget);
+      if (!isNaN(val)) {
+        const exists = await knex('budgets').where({ sector }).first();
+        if (exists) {
+          await knex('budgets').where({ sector }).update({ annual_budget: val });
+        } else {
+          await knex('budgets').insert({ sector, annual_budget: val, spent: 0 });
+        }
       }
     }
 
-    if (monthly_budget !== undefined && !isNaN(monthly_budget)) {
-      const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-      const currentMonth = monthNames[new Date().getMonth()];
-      
-      // Upsert para Sazonalidade
-      const seaExists = await knex('sector_seasonality').where({ sector, month: currentMonth }).first();
-      if (seaExists) {
-        await knex('sector_seasonality').where({ sector, month: currentMonth }).update({ budget: monthly_budget });
-      } else {
-        await knex('sector_seasonality').insert({ sector, month: currentMonth, budget: monthly_budget, spent: 0 });
+    if (monthly_budget !== undefined) {
+      const val = parseFloat(monthly_budget);
+      if (!isNaN(val)) {
+        const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        const currentMonth = monthNames[new Date().getMonth()];
+        
+        console.log('Atualizando Sazonalidade:', currentMonth, 'Setor:', sector, 'Valor:', val);
+
+        const seaExists = await knex('sector_seasonality').where({ sector, month: currentMonth }).first();
+        if (seaExists) {
+          await knex('sector_seasonality').where({ sector, month: currentMonth }).update({ budget: val });
+        } else {
+          await knex('sector_seasonality').insert({ sector, month: currentMonth, budget: val, spent: 0 });
+        }
       }
     }
     
     res.json({ success: true });
   } catch (err) {
-    console.error('ERRO CRÍTICO NO UPDATE:', err);
-    res.status(500).json({ error: 'Erro de banco de dados. Tente novamente.' });
+    console.error('ERRO FATAL NO BANCO DE DADOS:', err);
+    res.status(500).json({ error: 'Erro de processamento no servidor. Tente novamente.' });
   }
 });
 

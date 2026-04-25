@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, UserPlus, FolderPlus, Users, Layout, Save, Trash2, AlertCircle } from 'lucide-react';
+import { Shield, UserPlus, FolderPlus, Users, Layout, Save, Trash2, AlertCircle, TrendingUp } from 'lucide-react';
 import { API_URL } from '../config';
 
 const AdminPanel: React.FC<{ user: any }> = ({ user }) => {

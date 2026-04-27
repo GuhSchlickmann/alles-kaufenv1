@@ -49,8 +49,8 @@ const Dashboard: React.FC<{ user: any }> = ({ user }) => {
       .then(res => res.json())
       .then(data => setAllSectors(data));
 
-    // Busca compras
-    fetch(`${API_URL}/purchases`)
+    // Busca compras com cache: 'no-cache' para garantir dados novos
+    fetch(`${API_URL}/purchases`, { cache: 'no-cache' })
       .then(res => res.json())
       .then(data => {
         if (user.role === 'FINANCE' || user.role === 'ADMIN') {
@@ -62,8 +62,8 @@ const Dashboard: React.FC<{ user: any }> = ({ user }) => {
         }
       });
 
-    // Busca orçamentos
-    fetch(`${API_URL}/budgets`)
+    // Busca orçamentos com cache: 'no-cache'
+    fetch(`${API_URL}/budgets`, { cache: 'no-cache' })
       .then(res => res.json())
       .then(data => {
         if (user.role === 'FINANCE' || user.role === 'ADMIN') {
@@ -75,14 +75,15 @@ const Dashboard: React.FC<{ user: any }> = ({ user }) => {
         }
         setIsLoading(false);
       });
-  }, [user]);
+  }, [user, isSharedUser]);
 
   useEffect(() => {
     const fetchPath = (selectedSector === 'TODOS' || selectedSector === 'MEUS_SETORES') ? 'ALL' : selectedSector;
-    fetch(`${API_URL}/seasonality/${fetchPath}`)
+    fetch(`${API_URL}/seasonality/${fetchPath}`, { cache: 'no-cache' })
       .then(res => res.json())
       .then(data => setMonthlyData(data));
   }, [selectedSector]);
+
 
   // Cálculos filtrados
   const filteredPurchases = useMemo(() => {

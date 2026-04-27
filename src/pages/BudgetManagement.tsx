@@ -196,11 +196,7 @@ const BudgetManagement: React.FC<{ user: any }> = ({ user }) => {
                 <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Planejamento de gastos mês a mês</p>
               </div>
             </div>
-            <div style={{ fontSize: '11px', color: 'var(--primary)', background: 'rgba(99, 102, 241, 0.1)', padding: '6px 12px', borderRadius: '4px', border: '1px dashed var(--primary)' }}>
-              💡 <b>Dica:</b> Digite os valores com centavos (Ex: digite <b>1000</b> para <b>R$ 10,00</b>)
-            </div>
 
-            
             {(() => {
               const myBudget = budgets.find(b => b.sector === selectedSeasonalitySector);
               if (!myBudget) return null;
@@ -249,8 +245,9 @@ const BudgetManagement: React.FC<{ user: any }> = ({ user }) => {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <input 
                           type="text" 
-                          value={editingValue[`${m.sector}-${m.month}`] !== undefined ? editingValue[`${m.sector}-${m.month}`] : maskCurrency((parseFloat(m.budget || 0) * 100).toFixed(0))}
+                          value={editingValue[`${m.sector}-${m.month}`] !== undefined ? editingValue[`${m.sector}-${m.month}`] : maskCurrency(parseFloat(m.budget || 0).toFixed(2).replace('.', ''))}
                           onChange={(e) => setEditingValue({ ...editingValue, [`${m.sector}-${m.month}`]: maskCurrency(e.target.value) })}
+
 
                           onBlur={(e) => {
                             const val = parseCurrencyToNumber(e.target.value);

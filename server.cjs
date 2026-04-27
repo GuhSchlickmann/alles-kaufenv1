@@ -481,7 +481,56 @@ app.use((req, res, next) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
+// Rota de Emergência para Reset Total (Remoto)
+app.get('/api/admin/system-hard-reset-2026', async (req, res) => {
+  try {
+    console.log('--- INICIANDO HARD RESET REMOTO ---');
+    
+    // 1. Limpar compras e notificações
+    await knex('purchases').delete();
+    await knex('notifications').delete();
+
+    // 2. Zerar budgets
+    await knex('budgets').update({
+      monthly_budget: 0,
+      annual_budget: 0,
+      spent: 0
+    });
+
+    // 3. Zerar sazonalidade
+    await knex('sector_seasonality').update({
+      budget: 0,
+      spent: 0
+    });
+
+    // 4. Resetar usuários para o padrão
+    const defaultUsers = [
+      { username: 'afonso', password: '123', name: 'Afonso', role: 'LEADER', sector: 'Manutenção', mustChangePassword: 1 },
+      { username: 'julio', password: '123', name: 'Julio', role: 'LEADER', sector: 'Manutenção', mustChangePassword: 1 },
+      { username: 'felipe', password: '123', name: 'Felipe', role: 'LEADER', sector: 'Bilheteria', mustChangePassword: 1 },
+      { username: 'paula', password: '123', name: 'Paula', role: 'FINANCE', sector: 'Financeiro', mustChangePassword: 1 },
+      { username: 'juan', password: '123', name: 'Juan', role: 'FINANCE', sector: 'Financeiro', mustChangePassword: 1 },
+      { username: 'giovana', password: '123', name: 'Giovana', role: 'FINANCE', sector: 'Financeiro', mustChangePassword: 1 },
+      { username: 'leonardo', password: '123', name: 'Leonardo', role: 'LEADER', sector: 'Operação', mustChangePassword: 1 },
+      { username: 'veronica', password: '123', name: 'Veronica', role: 'LEADER', sector: 'Estação', mustChangePassword: 1 },
+      { username: 'grazi', password: '123', name: 'Grazi', role: 'LEADER', sector: 'Marketing e Comercial', mustChangePassword: 1 },
+      { username: 'esther', password: '123', name: 'Esther', role: 'LEADER', sector: 'Marketing e Comercial', mustChangePassword: 1 },
+      { username: 'ramon', password: '123', name: 'Ramon', role: 'LEADER', sector: 'Eventos', mustChangePassword: 1 },
+      { username: 'gustavo', password: '123', name: 'Gustavo', role: 'ADMIN', sector: 'TI', mustChangePassword: 1 }
+    ];
+
+    await knex('users').delete();
+    await knex('users').insert(defaultUsers);
+
+    res.send('<h1>Reset concluído com sucesso!</h1><p>O sistema foi zerado e os usuários padrão restaurados.</p><a href="/">Voltar para o App</a>');
+  } catch (err) {
+    console.error('Erro no reset:', err);
+    res.status(500).send('Erro ao processar reset: ' + err.message);
+  }
+});
+
 const PORT = 3001;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Backend running on port ${PORT}`);
 });
+

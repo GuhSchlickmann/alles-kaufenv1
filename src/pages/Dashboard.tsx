@@ -143,35 +143,34 @@ const Dashboard: React.FC<{ user: any }> = ({ user }) => {
       </div>
 
       {/* Charts Row */}
-      {(user.role === 'FINANCE' || user.role === 'ADMIN') ? (
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
-          <div className="card">
-            <h3 style={{ marginBottom: '20px' }}>Evolução Mensal: Budget vs Realizado</h3>
-            <div style={{ height: '300px' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis dataKey="month" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `R$ ${val/1000}k`} />
-                  <Tooltip 
-                    cursor={{ fill: 'rgba(255, 255, 255, 0.03)' }}
-                    contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px' }}
-                    itemStyle={{ fontSize: '12px' }}
-                    formatter={(value: any) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)}
-                  />
-
-                  <Bar dataKey="budget" name="Planejado" fill="var(--primary)" radius={[4, 4, 0, 0]} barSize={20} />
-                  <Bar dataKey="spent" name="Realizado" fill="var(--success)" radius={[4, 4, 0, 0]} barSize={20} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            {selectedSector !== 'TODOS' && (
-               <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '12px', textAlign: 'center' }}>
-                 * Exibindo orçamento mensal planejado da empresa vs gasto real do setor {selectedSector}.
-               </p>
-            )}
+      <div style={{ display: 'grid', gridTemplateColumns: (user.role === 'FINANCE' || user.role === 'ADMIN') ? '2fr 1fr' : '1fr', gap: '24px' }}>
+        <div className="card">
+          <h3 style={{ marginBottom: '20px' }}>Evolução Mensal: Budget vs Realizado</h3>
+          <div style={{ height: '300px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                <XAxis dataKey="month" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `R$ ${val/1000}k`} />
+                <Tooltip 
+                  cursor={{ fill: 'rgba(255, 255, 255, 0.03)' }}
+                  contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px' }}
+                  itemStyle={{ fontSize: '12px' }}
+                  formatter={(value: any) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)}
+                />
+                <Bar dataKey="budget" name="Planejado" fill="var(--primary)" radius={[4, 4, 0, 0]} barSize={20} />
+                <Bar dataKey="spent" name="Realizado" fill="var(--success)" radius={[4, 4, 0, 0]} barSize={20} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
+          {selectedSector !== 'TODOS' && (
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '12px', textAlign: 'center' }}>
+                * Exibindo orçamento mensal planejado vs gasto real do setor {selectedSector}.
+              </p>
+          )}
+        </div>
 
+        {(user.role === 'FINANCE' || user.role === 'ADMIN') && (
           <div className="card">
             <h3 style={{ marginBottom: '20px' }}>Gastos por Setor</h3>
             <div style={{ height: '300px' }}>
@@ -194,14 +193,9 @@ const Dashboard: React.FC<{ user: any }> = ({ user }) => {
               </ResponsiveContainer>
             </div>
           </div>
-        </div>
-      ) : (
-        <div className="card" style={{ padding: '40px', textAlign: 'center', background: 'rgba(99, 102, 241, 0.05)' }}>
-          <DollarSign size={48} style={{ color: 'var(--primary)', marginBottom: '16px', opacity: 0.5 }} />
-          <h3>Seu Orçamento do Setor</h3>
-          <p style={{ color: 'var(--text-muted)' }}>Você tem acesso total às solicitações e ao budget do seu setor (**{user.sector}**).</p>
-        </div>
-      )}
+        )}
+      </div>
+
 
       {/* Recent Activity */}
       <div className="card">

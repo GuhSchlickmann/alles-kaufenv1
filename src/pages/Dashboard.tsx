@@ -1,14 +1,41 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-  AreaChart, Area, PieChart, Pie, Cell 
+  LayoutDashboard, 
+  ShoppingCart, 
+  Wallet, 
+  TrendingUp, 
+  TrendingDown, 
+  DollarSign, 
+  Clock, 
+  CheckCircle,
+  AlertCircle,
+  Filter,
+  BarChart3,
+  PieChart as PieIcon,
+  ArrowRight,
+  Info
+} from 'lucide-react';
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer, 
+  PieChart, 
+  Pie, 
+  Cell 
 } from 'recharts';
-import { DollarSign, Clock, CheckCircle, TrendingUp, TrendingDown, PieChart as PieChartIcon } from 'lucide-react';
 import { API_URL } from '../config';
 
-const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444'];
-
 const Dashboard: React.FC<{ user: any }> = ({ user }) => {
+  const sharedSectors = ['Marketing e Comercial', 'Eventos'];
+  const isSharedUser = ['Grazi', 'Esther', 'Ramon'].includes(user.name);
+  
+  const [selectedSector, setSelectedSector] = useState<string>(
+    isSharedUser ? 'MEUS_SETORES' : user.sector
+  );
   const [purchases, setPurchases] = useState<any[]>([]);
   const [budgets, setBudgets] = useState<any[]>([]);
   const [monthlyData, setMonthlyData] = useState<any[]>([]);

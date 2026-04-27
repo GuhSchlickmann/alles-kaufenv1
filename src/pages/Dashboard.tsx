@@ -12,7 +12,7 @@ const Dashboard: React.FC<{ user: any }> = ({ user }) => {
   const [purchases, setPurchases] = useState<any[]>([]);
   const [budgets, setBudgets] = useState<any[]>([]);
   const [monthlyData, setMonthlyData] = useState<any[]>([]);
-  const [selectedSector, setSelectedSector] = useState<string>(user.sector);
+  const [selectedSector, setSelectedSector] = useState<string>(['Grazi', 'Esther', 'Ramon'].includes(user.name) ? 'MEUS_SETORES' : user.sector);
   const [allSectors, setAllSectors] = useState<any[]>([]);
 
   useEffect(() => {
@@ -49,23 +49,21 @@ const Dashboard: React.FC<{ user: any }> = ({ user }) => {
         }
       });
 
-    fetch(`${API_URL}/seasonality/${selectedSector}`)
-      .then(res => res.json())
-      .then(data => setMonthlyData(data));
-
     fetch(`${API_URL}/sectors`)
       .then(res => res.json())
       .then(data => setAllSectors(data));
-  }, [user, selectedSector]);
+  }, [user]);
+
 
   // Filtragem Dinâmica
-  const filteredPurchases = selectedSector === 'TODOS' 
+  const filteredPurchases = (selectedSector === 'TODOS' || selectedSector === 'MEUS_SETORES') 
     ? purchases 
     : purchases.filter(p => p.sector === selectedSector);
 
-  const filteredBudgets = selectedSector === 'TODOS' 
+  const filteredBudgets = (selectedSector === 'TODOS' || selectedSector === 'MEUS_SETORES')
     ? budgets 
     : budgets.filter(b => b.sector === selectedSector);
+
 
   const totalSpent = filteredBudgets.reduce((acc, curr) => acc + parseFloat(curr.spent || 0), 0);
   
@@ -81,6 +79,14 @@ const Dashboard: React.FC<{ user: any }> = ({ user }) => {
   const totalMonthlyBudget = currentMonthData ? parseFloat(currentMonthData.budget || 0) : 0;
 
   const totalAnnualBudget = filteredBudgets.reduce((acc, curr) => acc + parseFloat(curr.annual_budget || 0), 0);
+ 
+  // Carregar dados de sazonalidade consolidados se selecionado MEUS_SETORES ou TODOS
+  useEffect(() => {
+    const fetchPath = (selectedSector === 'TODOS' || selectedSector === 'MEUS_SETORES') ? 'ALL' : selectedSector;
+    fetch(`${API_URL}/seasonality/${fetchPath}`)
+      .then(res => res.json())
+      .then(data => setMonthlyData(data));
+  }, [selectedSector]);
 
   const sectorPieData = budgets.map(b => ({
     name: b.sector,
@@ -90,21 +96,33 @@ const Dashboard: React.FC<{ user: any }> = ({ user }) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* Filtro de Setor */}
-      {(user.sector === 'TI' || user.role === 'FINANCE') && (
+      {(user.sector === 'TI' || user.role === 'FINANCE' || ['Grazi', 'Esther', 'Ramon'].includes(user.name)) && (
         <div className="card" style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '16px' }}>
           <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-muted)' }}>Filtrar por Setor:</span>
           <select 
             value={selectedSector} 
             onChange={(e) => setSelectedSector(e.target.value)}
-            style={{ width: '200px', marginBottom: 0 }}
+            style={{ width: '250px', marginBottom: 0 }}
           >
-            <option value="TODOS">Todos os Setores</option>
-            {allSectors.map(s => (
-              <option key={s.sector} value={s.sector}>{s.sector}</option>
-            ))}
+            {(user.sector === 'TI' || user.role === 'FINANCE') ? (
+              <>
+                <option value="TODOS">Todos os Setores da Empresa</option>
+                {allSectors.map(s => (
+                  <option key={s.sector} value={s.sector}>{s.sector}</option>
+                ))}
+              </>
+            ) : (
+              <>
+                <option value="MEUS_SETORES">Total (Meus Setores)</option>
+                {['Marketing e Comercial', 'Eventos'].map(s => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </>
+            )}
           </select>
         </div>
       )}
+
       {/* Stats Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px' }}>
         {user.name !== 'Afonso' && (
@@ -165,11 +183,17 @@ const Dashboard: React.FC<{ user: any }> = ({ user }) => {
               </BarChart>
             </ResponsiveContainer>
           </div>
-          {selectedSector !== 'TODOS' && (
+          {selectedSector !== 'TODOS' && selectedSector !== 'MEUS_SETORES' && (
               <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '12px', textAlign: 'center' }}>
                 * Exibindo orçamento mensal planejado vs gasto real do setor {selectedSector}.
               </p>
           )}
+          {(selectedSector === 'TODOS' || selectedSector === 'MEUS_SETORES') && (
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '12px', textAlign: 'center' }}>
+                * Exibindo visão consolidada de todos os seus setores.
+              </p>
+          )}
+
         </div>
 
         {(user.role === 'FINANCE' || user.role === 'ADMIN') && (

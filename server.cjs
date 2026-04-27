@@ -255,28 +255,36 @@ app.get('/api/purchases', async (req, res) => {
 });
 
 app.post('/api/purchases', async (req, res) => {
-  console.log("--- NOVA SOLICITAÇÃO RECEBIDA ---");
-  console.log("Body:", JSON.stringify(req.body, null, 2));
-  
-  const { productName, description, amount, sector, requestedBy, paymentMethod, dueDate, productLink } = req.body;
-  
-  const [id] = await knex('purchases').insert({
-    productName, description, amount, sector, requestedBy, paymentMethod, dueDate, productLink
-  });
-
-  // Notificar FINANCE e ADMIN sobre nova solicitação
-  const admins = await knex('users').whereIn('role', ['ADMIN', 'FINANCE']).select('username');
-  for (const admin of admins) {
-    await knex('notifications').insert({
-      user: admin.username,
-      title: 'Nova Solicitação',
-      message: `${requestedBy} solicitou ${productName} (R$ ${amount.toLocaleString()})`
+  try {
+    console.log("--- NOVA SOLICITAÇÃO RECEBIDA ---");
+    const { productName, description, amount, sector, requestedBy, paymentMethod, dueDate, productLink } = req.body;
+    
+    const [id] = await knex('purchases').insert({
+      productName, description, amount, sector, requestedBy, paymentMethod, dueDate, productLink
     });
-  }
 
-  console.log("SALVO COM SUCESSO. ID:", id);
-  res.json({ id, status: 'PENDING' });
+    // Tentar notificar FINANCE e ADMIN, mas não travar se falhar
+    try {
+      const admins = await knex('users').whereIn('role', ['ADMIN', 'FINANCE']).select('username');
+      for (const admin of admins) {
+        await knex('notifications').insert({
+          user: admin.username,
+          title: 'Nova Solicitação',
+          message: `${requestedBy} solicitou ${productName} (R$ ${amount.toLocaleString('pt-BR')})`
+        });
+      }
+    } catch (notifyErr) {
+      console.error("Erro ao enviar notificações:", notifyErr);
+    }
+
+    console.log("SALVO COM SUCESSO. ID:", id);
+    res.json({ id, status: 'PENDING' });
+  } catch (err) {
+    console.error("ERRO CRÍTICO AO SALVAR COMPRA:", err);
+    res.status(500).json({ error: "Erro interno ao salvar solicitação", details: err.message });
+  }
 });
+
 
 app.get('/api/budgets', async (req, res) => {
   const budgets = await knex('budgets').select('*');
@@ -293,53 +301,57 @@ app.patch('/api/purchases/:id/status', async (req, res) => {
   });
 
   if (status === 'APPROVED') {
-    const purchase = await knex('purchases').where({ id }).first();
-    await knex('budgets').where({ sector: purchase.sector }).increment('spent', purchase.amount);
-    
-    // Update monthly stats (Sazonalidade por Setor)
-    const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-    const currentMonth = monthNames[new Date().getMonth()];
-    
-    await knex('sector_seasonality')
-      .where({ sector: purchase.sector, month: currentMonth })
-      .increment('spent', purchase.amount);
+    try {
+      const purchase = await knex('purchases').where({ id }).first();
+      await knex('budgets').where({ sector: purchase.sector }).increment('spent', purchase.amount);
+      
+      const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      const currentMonth = monthNames[new Date().getMonth()];
+      
+      await knex('sector_seasonality')
+        .where({ sector: purchase.sector, month: currentMonth })
+        .increment('spent', purchase.amount);
 
-    // Verificar se o budget mensal está próximo do fim ou estourou
-    const sea = await knex('sector_seasonality')
-      .where({ sector: purchase.sector, month: currentMonth })
-      .first();
+      // Notificações de orçamento e aprovação
+      try {
+        const sea = await knex('sector_seasonality')
+          .where({ sector: purchase.sector, month: currentMonth })
+          .first();
 
-    const remaining = sea.budget - sea.spent;
+        const remaining = (sea.budget || 0) - (sea.spent || 0);
 
-    if (remaining <= 500 && remaining > 0) {
-      await knex('notifications').insert({
-        user: purchase.requestedBy, 
-        title: '⚠️ Orçamento Quase no Fim',
-        message: `Seu orçamento de ${currentMonth} para ${purchase.sector} está acabando! Restam R$ ${remaining.toLocaleString()}.`
-      });
-    } else if (remaining <= 0) {
+        if (remaining <= 500 && remaining > 0) {
+          await knex('notifications').insert({
+            user: purchase.requestedBy, 
+            title: '⚠️ Orçamento Quase no Fim',
+            message: `Seu orçamento de ${currentMonth} para ${purchase.sector} está acabando! Restam R$ ${remaining.toLocaleString()}.`
+          });
+        }
+        
+        await knex('notifications').insert({
+          user: purchase.requestedBy,
+          title: 'Solicitação Aprovada',
+          message: `Sua solicitação de ${purchase.productName} foi aprovada pelo financeiro.`
+        });
+      } catch (innerErr) {
+        console.error("Erro em notificações de aprovação:", innerErr);
+      }
+    } catch (err) {
+      console.error("Erro ao processar aprovação:", err);
+    }
+  } else if (status === 'REJECTED') {
+    try {
+      const purchase = await knex('purchases').where({ id }).first();
       await knex('notifications').insert({
         user: purchase.requestedBy,
-        title: '🚫 Orçamento Excedido',
-        message: `O orçamento de ${currentMonth} do setor ${purchase.sector} foi excedido com esta compra.`
+        title: 'Solicitação Recusada',
+        message: `Sua solicitação de ${purchase.productName} foi recusada. Motivo: ${rejectionReason}`
       });
+    } catch (err) {
+      console.error("Erro ao enviar notificação de recusa:", err);
     }
-    
-    // Notificar solicitante sobre aprovação
-    await knex('notifications').insert({
-      user: purchase.requestedBy,
-      title: 'Solicitação Aprovada',
-      message: `Sua solicitação de ${purchase.productName} foi aprovada pelo financeiro.`
-    });
-  } else if (status === 'REJECTED') {
-    // Notificar solicitante sobre recusa
-    await knex('notifications').insert({
-      user: purchase.requestedBy,
-      title: 'Solicitação Recusada',
-      message: `Sua solicitação de ${purchase.productName} foi recusada. Motivo: ${rejectionReason}`
-    });
   }
-
+  
   res.json({ success: true });
 });
 

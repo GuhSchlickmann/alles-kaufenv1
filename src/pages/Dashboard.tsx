@@ -258,15 +258,22 @@ const Dashboard: React.FC<{ user: any }> = ({ user }) => {
               <BarChart data={monthlyData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                 <XAxis dataKey="month" stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(val) => `R$ ${val/1000}k`} />
+                <YAxis 
+                  stroke="var(--text-muted)" 
+                  fontSize={11} 
+                  tickLine={false} 
+                  axisLine={false} 
+                  tickFormatter={(val) => val >= 1000 ? `R$ ${val/1000}k` : `R$ ${val}`} 
+                />
                 <Tooltip 
                   cursor={{ fill: 'rgba(255, 255, 255, 0.03)' }}
                   contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '12px', padding: '12px' }}
                   itemStyle={{ fontSize: '12px' }}
                   formatter={(value: any) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)}
                 />
-                <Bar dataKey="budget" name="Planejado" fill="var(--primary)" radius={[4, 4, 0, 0]} barSize={24} />
-                <Bar dataKey="spent" name="Realizado" fill="var(--success)" radius={[4, 4, 0, 0]} barSize={24} />
+                <Bar dataKey="budget" name="Planejado" fill="var(--primary)" radius={[4, 4, 0, 0]} barSize={24} minPointSize={2} />
+                <Bar dataKey="spent" name="Realizado" fill="var(--success)" radius={[4, 4, 0, 0]} barSize={24} minPointSize={2} />
+
               </BarChart>
             </ResponsiveContainer>
           </div>

@@ -360,8 +360,17 @@ app.get('/api/seasonality/:sector', async (req, res) => {
   }
   
   const sortedStats = stats.sort((a, b) => monthOrder.indexOf(a.month) - monthOrder.indexOf(b.month));
-  res.json(sortedStats);
+  
+  // Garantir que budget e spent sejam números para o Recharts
+  const formattedStats = sortedStats.map(s => ({
+    ...s,
+    budget: parseFloat(s.budget || 0),
+    spent: parseFloat(s.spent || 0)
+  }));
+
+  res.json(formattedStats);
 });
+
 
 app.post('/api/seasonality/update', async (req, res) => {
   const { sector, month, budget } = req.body;

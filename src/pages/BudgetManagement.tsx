@@ -41,8 +41,10 @@ const BudgetManagement: React.FC<{ user: any }> = ({ user }) => {
         
         // Define o setor inicial para a sazonalidade se não estiver definido
         if (!selectedSeasonalitySector && filteredBudgets.length > 0) {
-          setSelectedSeasonalitySector(filteredBudgets[0].sector);
+          const mySectorBudget = filteredBudgets.find(b => b.sector === user.sector);
+          setSelectedSeasonalitySector(mySectorBudget ? mySectorBudget.sector : filteredBudgets[0].sector);
         }
+
       });
   };
 

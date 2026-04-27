@@ -83,8 +83,8 @@ async function initDb() {
       { sector: 'Bilheteria', monthly_budget: 0, annual_budget: 0 },
       { sector: 'Manutenção', monthly_budget: 0, annual_budget: 0 },
       { sector: 'Financeiro', monthly_budget: 0, annual_budget: 0 },
-      { sector: 'Marketing', monthly_budget: 0, annual_budget: 0 },
-      { sector: 'Comercial', monthly_budget: 0, annual_budget: 0 },
+      { sector: 'Marketing e Comercial', monthly_budget: 0, annual_budget: 0 },
+
       { sector: 'Eventos', monthly_budget: 0, annual_budget: 0 },
       { sector: 'Estação', monthly_budget: 0, annual_budget: 0 },
       { sector: 'TI', monthly_budget: 0, annual_budget: 0 }
@@ -112,8 +112,9 @@ async function initDb() {
       { username: 'giovana', password: '123', name: 'Giovana', role: 'FINANCE', sector: 'Financeiro' },
       { username: 'leonardo', password: '123', name: 'Leonardo', role: 'LEADER', sector: 'Operação' },
       { username: 'veronica', password: '123', name: 'Veronica', role: 'LEADER', sector: 'Estação' },
-      { username: 'grazi', password: '123', name: 'Grazi', role: 'LEADER', sector: 'Marketing' },
-      { username: 'esther', password: '123', name: 'Esther', role: 'LEADER', sector: 'Comercial' },
+      { username: 'grazi', password: '123', name: 'Grazi', role: 'LEADER', sector: 'Marketing e Comercial' },
+      { username: 'esther', password: '123', name: 'Esther', role: 'LEADER', sector: 'Marketing e Comercial' },
+
       { username: 'ramon', password: '123', name: 'Ramon', role: 'LEADER', sector: 'Eventos' },
       { username: 'gustavo', password: '123', name: 'Gustavo', role: 'ADMIN', sector: 'TI' }
     ]);
@@ -131,7 +132,8 @@ async function initDb() {
 
     // Seed months with real-world empty starting state
     const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-    const sectors = ['Operação', 'Bilheteria', 'Manutenção', 'Financeiro', 'Marketing', 'Comercial', 'Eventos', 'Estação', 'TI'];
+    const sectors = ['Operação', 'Bilheteria', 'Manutenção', 'Financeiro', 'Marketing e Comercial', 'Eventos', 'Estação', 'TI'];
+
     
     const initialSeasonality = [];
     sectors.forEach(s => {

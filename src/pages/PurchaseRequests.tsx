@@ -39,7 +39,8 @@ const PurchaseRequests: React.FC<{
   }, [showNewRequest, user]);
 
   const fetchData = () => {
-    const sharedSectors = ['Marketing', 'Comercial', 'Eventos'];
+    const sharedSectors = ['Marketing e Comercial', 'Eventos'];
+
     const afonsoSectors = ['Manutenção', 'Estação'];
     const isSharedUser = ['Grazi', 'Esther', 'Ramon'].includes(user.name);
     const isAfonso = user.name === 'Afonso';
@@ -414,8 +415,8 @@ const PurchaseRequests: React.FC<{
                        <option value={user.sector}>{user.sector}</option>
                     ) : (['Grazi', 'Esther', 'Ramon'].includes(user.name) && user.role !== 'ADMIN' && user.role !== 'FINANCE') ? (
                       <>
-                        <option value="Marketing">Marketing</option>
-                        <option value="Comercial">Comercial</option>
+                        <option value="Marketing e Comercial">Marketing e Comercial</option>
+
                         <option value="Eventos">Eventos</option>
                       </>
                     ) : (user.name === 'Afonso') ? (

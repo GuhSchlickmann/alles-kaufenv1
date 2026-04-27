@@ -10,7 +10,7 @@ const BudgetManagement: React.FC<{ user: any }> = ({ user }) => {
   const [editingValue, setEditingValue] = useState<{ [key: string]: { monthly?: string, annual?: string } }>({});
 
   const fetchData = () => {
-    const sharedSectors = ['Marketing', 'Comercial', 'Eventos'];
+    const sharedSectors = ['Marketing e Comercial', 'Eventos'];
     const isSharedUser = ['Grazi', 'Esther', 'Ramon'].includes(user.name);
 
     fetch(`${API_URL}/budgets`)

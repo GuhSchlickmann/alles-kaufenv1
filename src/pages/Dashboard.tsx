@@ -16,10 +16,12 @@ const Dashboard: React.FC<{ user: any }> = ({ user }) => {
   const [allSectors, setAllSectors] = useState<any[]>([]);
 
   useEffect(() => {
-    const sharedSectors = ['Marketing', 'Comercial', 'Eventos'];
+    const sharedSectors = ['Marketing e Comercial', 'Eventos'];
+
     const isSharedUser = ['Grazi', 'Esther', 'Ramon'].includes(user.name);
     const isAfonso = user.name === 'Afonso';
-    const afonsoSectors = ['Marketing', 'Comercial', 'Eventos', 'TI', 'RH', 'Financeiro', 'Jurídico', 'Diretoria'];
+    const afonsoSectors = ['Marketing e Comercial', 'Eventos', 'TI', 'RH', 'Financeiro', 'Jurídico', 'Diretoria'];
+
 
     fetch(`${API_URL}/purchases`)
       .then(res => res.json())

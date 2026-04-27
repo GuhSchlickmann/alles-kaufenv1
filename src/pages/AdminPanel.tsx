@@ -155,7 +155,36 @@ const AdminPanel: React.FC<{ user: any }> = ({ user }) => {
       </header>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
+        <div className="card" style={{ border: '1px solid var(--danger)', background: 'rgba(239, 68, 68, 0.05)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <h3 style={{ color: 'var(--danger)', marginBottom: '8px' }}>Zona de Perigo: Zerar Sistema</h3>
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Isso removerá TODAS as solicitações, resetará os gastos e voltará as senhas para "123".</p>
+            </div>
+            <button 
+              onClick={async () => {
+                const conf = prompt('Para zerar TUDO, digite "LIMPAR_TUDO":');
+                if (conf === 'LIMPAR_TUDO') {
+                  const res = await fetch(`${API_URL}/admin/hard-reset`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ confirmation: conf, username: user.username })
+                  });
+                  if (res.ok) {
+                    alert('SISTEMA ZERADO! A página será recarregada.');
+                    window.location.reload();
+                  }
+                }
+              }}
+              style={{ background: 'var(--danger)', color: 'white', padding: '10px 20px', borderRadius: '8px', fontWeight: 'bold' }}
+            >
+              ZERAR TUDO AGORA
+            </button>
+          </div>
+        </div>
+
         {/* User Management */}
+
         <div className="card">
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
             <div style={{ padding: '8px', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '8px', color: 'var(--primary)' }}>

@@ -1,54 +1,66 @@
 import React, { useState, useEffect } from 'react';
-import { Wallet, TrendingUp, AlertCircle, Save, Edit3, CheckCircle, PieChart as PieIcon } from 'lucide-react';
+import { 
+  Wallet, 
+  TrendingUp, 
+  AlertCircle, 
+  Save, 
+  Edit3, 
+  CheckCircle, 
+  PieChart as PieIcon,
+  ChevronRight,
+  Info
+} from 'lucide-react';
 import { API_URL } from '../config';
 import { maskCurrency, parseCurrencyToNumber } from '../utils/currency';
-
 
 const BudgetManagement: React.FC<{ user: any }> = ({ user }) => {
   const [budgets, setBudgets] = useState<any[]>([]);
   const [seasonality, setSeasonality] = useState<any[]>([]);
   const [editingValue, setEditingValue] = useState<{ [key: string]: { monthly?: string, annual?: string } }>({});
+  const [selectedSeasonalitySector, setSelectedSeasonalitySector] = useState<string>('');
+  
+  const sharedSectors = ['Marketing e Comercial', 'Eventos'];
+  const isSharedUser = ['Grazi', 'Esther', 'Ramon'].includes(user.name);
 
   const fetchData = () => {
-    const sharedSectors = ['Marketing e Comercial', 'Eventos'];
-    const isSharedUser = ['Grazi', 'Esther', 'Ramon'].includes(user.name);
-
     fetch(`${API_URL}/budgets`)
       .then(res => res.json())
       .then(data => {
         const isTI = user.sector === 'TI';
         const isFinance = user.role === 'FINANCE';
 
+        let filteredBudgets = [];
         if (isTI || isFinance) {
-          // TI (Gustavo) e Financeiro veem tudo
-          setBudgets(data);
+          filteredBudgets = data;
         } else if (isSharedUser) {
-          // Setores compartilhados
-          setBudgets(data.filter((b: any) => sharedSectors.includes(b.sector)));
+          filteredBudgets = data.filter((b: any) => sharedSectors.includes(b.sector));
         } else {
-          // Resto vê apenas o seu próprio setor
-          setBudgets(data.filter((b: any) => b.sector === user.sector));
+          filteredBudgets = data.filter((b: any) => b.sector === user.sector);
+        }
+        setBudgets(filteredBudgets);
+        
+        // Define o setor inicial para a sazonalidade se não estiver definido
+        if (!selectedSeasonalitySector && filteredBudgets.length > 0) {
+          setSelectedSeasonalitySector(filteredBudgets[0].sector);
         }
       });
-
-    fetch(`${API_URL}/seasonality/${user.sector}`)
-      .then(res => res.json())
-      .then(data => setSeasonality(data));
   };
 
   useEffect(() => {
     fetchData();
   }, [user]);
 
+  useEffect(() => {
+    if (selectedSeasonalitySector) {
+      fetch(`${API_URL}/seasonality/${selectedSeasonalitySector}`)
+        .then(res => res.json())
+        .then(data => setSeasonality(data));
+    }
+  }, [selectedSeasonalitySector]);
+
   const handleUpdateBudget = async (sector: string, type: 'monthly' | 'annual') => {
     const value = editingValue[sector]?.[type];
-    
-    // Validação básica: não permitir vazio
-    if (!value) {
-      alert('Por favor, insira um valor.');
-      return;
-    }
-
+    if (!value) return;
 
     try {
       const res = await fetch(`${API_URL}/budgets/update`, {
@@ -58,18 +70,14 @@ const BudgetManagement: React.FC<{ user: any }> = ({ user }) => {
           sector, 
           [type === 'monthly' ? 'monthly_budget' : 'annual_budget']: parseCurrencyToNumber(value) 
         })
-
       });
 
       if (res.ok) {
         setEditingValue({ ...editingValue, [sector]: { ...editingValue[sector], [type]: '' } });
         fetchData();
-      } else {
-        alert('Erro ao salvar. Verifique a conexão com o servidor.');
       }
     } catch (err) {
       console.error('Erro no update:', err);
-      alert('Erro de conexão com o servidor.');
     }
   };
 
@@ -83,146 +91,176 @@ const BudgetManagement: React.FC<{ user: any }> = ({ user }) => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', animation: 'fadeIn 0.5s ease' }}>
+      <header>
+        <h1 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '8px' }}>Gestão de Budget</h1>
+        <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>
+          {isSharedUser ? 'Você tem permissão para gerenciar os budgets de Comercial/Marketing e Eventos.' : 'Gerencie os tetos de gastos e planejamento do seu setor.'}
+        </p>
+      </header>
+
+      {/* Grid de Cartões de Setores */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '24px' }}>
         {budgets.map(b => (
-          <div key={b.sector} className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div key={b.sector} className="card" style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '20px',
+            border: selectedSeasonalitySector === b.sector ? '1px solid var(--primary)' : '1px solid var(--border)',
+            boxShadow: selectedSeasonalitySector === b.sector ? '0 0 0 1px var(--primary)' : 'none'
+          }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ fontSize: '18px' }}>{b.sector}</h3>
-              <PieIcon size={18} style={{ color: 'var(--text-muted)' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ padding: '8px', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '8px', color: 'var(--primary)' }}>
+                  <Wallet size={18} />
+                </div>
+                <h3 style={{ fontSize: '18px', fontWeight: '600' }}>{b.sector}</h3>
+              </div>
+              <button 
+                onClick={() => setSelectedSeasonalitySector(b.sector)}
+                style={{ 
+                  background: selectedSeasonalitySector === b.sector ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
+                  color: selectedSeasonalitySector === b.sector ? 'white' : 'var(--text-muted)',
+                  padding: '6px 12px',
+                  fontSize: '11px',
+                  fontWeight: '600',
+                  borderRadius: '6px'
+                }}
+              >
+                Ver Detalhes
+              </button>
             </div>
             
-            <div style={{ position: 'relative', height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
-              <div style={{ 
-                position: 'absolute', left: 0, top: 0, height: '100%', 
-                width: `${Math.min(100, (b.spent / b.monthly_budget) * 100)}%`,
-                background: (b.spent / b.monthly_budget) > 0.9 ? 'var(--danger)' : 'var(--primary)',
-                transition: 'width 1s ease-in-out'
-              }}></div>
+            <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Progresso do Orçamento Anual</span>
+                <span style={{ fontSize: '12px', fontWeight: '600' }}>{((b.spent / b.annual_budget) * 100 || 0).toFixed(1)}%</span>
+              </div>
+              <div style={{ height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
+                <div style={{ 
+                  height: '100%', 
+                  width: `${Math.min(100, (b.spent / b.annual_budget) * 100)}%`,
+                  background: (b.spent / b.annual_budget) > 0.9 ? 'var(--danger)' : 'var(--success)',
+                  transition: 'width 1s ease-in-out'
+                }}></div>
+              </div>
             </div>
 
-              <div style={{ display: 'flex', gap: '24px', marginBottom: '20px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px' }}>
-                <div>
-                  <p style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '4px' }}>Anual</p>
-                  <p style={{ fontWeight: '700', fontSize: '14px' }}>R$ {parseFloat(b.annual_budget || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                </div>
-                <div>
-                  <p style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '4px' }}>Gasto</p>
-                  <p style={{ fontWeight: '700', fontSize: '14px' }}>R$ {parseFloat(b.spent || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                </div>
-
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              <div>
+                <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px', textTransform: 'uppercase' }}>Teto Anual</p>
+                <p style={{ fontWeight: '700', fontSize: '16px' }}>R$ {parseFloat(b.annual_budget || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
               </div>
+              <div>
+                <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px', textTransform: 'uppercase' }}>Total Gasto</p>
+                <p style={{ fontWeight: '700', fontSize: '16px', color: (b.spent > b.annual_budget) ? 'var(--danger)' : 'inherit' }}>
+                  R$ {parseFloat(b.spent || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+            </div>
 
-            <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+            <div style={{ paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+              <label style={{ display: 'block', fontSize: '12px', marginBottom: '8px', color: 'var(--text-muted)' }}>Atualizar Budget Anual</label>
+              <div style={{ display: 'flex', gap: '8px' }}>
                 <input 
                   type="text" 
-                  placeholder="Novo Anual" 
-                  style={{ flex: 1, padding: '8px', fontSize: '12px' }}
+                  placeholder="R$ 0,00" 
+                  style={{ flex: 1, padding: '8px 12px', fontSize: '13px' }}
                   value={editingValue[b.sector]?.annual || ''}
                   onChange={e => setEditingValue({ ...editingValue, [b.sector]: { ...editingValue[b.sector], annual: maskCurrency(e.target.value) } })}
                 />
-
                 <button 
                   onClick={() => handleUpdateBudget(b.sector, 'annual')}
-                  style={{ background: 'var(--success)', color: 'white', padding: '0 8px', fontSize: '11px', borderRadius: '4px' }}
+                  style={{ background: 'var(--primary)', color: 'white', padding: '0 16px', fontSize: '13px', fontWeight: '600' }}
                 >
-                  Salvar
+                  <Save size={16} />
                 </button>
               </div>
-            </div>
-
-            <div style={{ 
-              padding: '12px', 
-              background: 'rgba(255,255,255,0.03)', 
-              borderRadius: '8px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <span style={{ fontSize: '12px' }}>Previsão Próximo Mês:</span>
-              <span style={{ fontWeight: '700', color: (b.spent * 1.1) > b.monthly_budget ? 'var(--warning)' : 'var(--success)' }}>
-                R$ {(b.spent * 1.1).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-              </span>
-
             </div>
           </div>
         ))}
       </div>
 
-      {/* Planejamento Mensal por Setor */}
-      {seasonality.length > 0 && budgets.length > 0 && (
-        <div className="card" style={{ marginTop: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+      {/* Planejamento Mensal (Sazonalidade) */}
+      {seasonality.length > 0 && (
+        <div className="card" style={{ animation: 'fadeIn 0.5s ease 0.2s both' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <TrendingUp size={20} style={{ color: 'var(--primary)' }} />
-              <h3 style={{ fontSize: '18px' }}>Planejamento Mensal (Sazonalidade)</h3>
+              <div style={{ padding: '8px', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '8px', color: 'var(--success)' }}>
+                <TrendingUp size={20} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: '18px', fontWeight: '600' }}>Sazonalidade: {selectedSeasonalitySector}</h3>
+                <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Planejamento de gastos mês a mês</p>
+              </div>
             </div>
             
-            {/* Validação de Soma vs Anual */}
             {(() => {
-              const myBudget = budgets.find(b => b.sector === user.sector);
+              const myBudget = budgets.find(b => b.sector === selectedSeasonalitySector);
               if (!myBudget) return null;
               
               const seasonalTotal = seasonality.reduce((acc, curr) => acc + parseFloat(curr.budget || 0), 0);
               const annualTeto = parseFloat(myBudget.annual_budget || 0);
-              const isOver = seasonalTotal > (annualTeto + 0.1); // Margem para erros de float
+              const isOver = seasonalTotal > (annualTeto + 0.1);
 
               return (
                 <div style={{ 
-                  padding: '8px 16px', 
-                  borderRadius: '8px', 
+                  padding: '10px 16px', 
+                  borderRadius: '10px', 
                   fontSize: '13px',
                   background: isOver ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
                   color: isOver ? '#ef4444' : '#10b981',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px',
+                  gap: '10px',
                   border: '1px solid currentColor'
                 }}>
-                  {isOver ? <AlertCircle size={16} /> : <CheckCircle size={16} />}
-                  {seasonalTotal > annualTeto ? (
-                    <span>
-                      <strong>Atenção:</strong> A soma dos meses (R$ {seasonalTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}) <strong>EXCEDEU</strong> o teto anual de R$ {annualTeto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </span>
-                  ) : (
-                    <span>
-                      <strong>Planejamento OK:</strong> Soma dos meses (R$ {seasonalTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}) está dentro do teto anual de R$ {annualTeto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </span>
-                  )}
+                  {isOver ? <AlertCircle size={18} /> : <CheckCircle size={18} />}
+                  <span style={{ fontWeight: '500' }}>
+                    Soma dos Meses: R$ {seasonalTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} 
+                    {isOver ? ' (EXCEDE O TETO)' : ' (DENTRO DO TETO)'}
+                  </span>
                 </div>
-
               );
             })()}
           </div>
+
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr style={{ textAlign: 'left', color: 'var(--text-muted)', fontSize: '14px', borderBottom: '1px solid var(--border)' }}>
-                  <th style={{ padding: '12px' }}>Mês</th>
-                  <th>Teto de Gasto (R$)</th>
-                  <th>Status Atual</th>
+                <tr style={{ textAlign: 'left', color: 'var(--text-muted)', fontSize: '12px', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>
+                  <th style={{ padding: '12px 16px' }}>Mês</th>
+                  <th style={{ padding: '12px 16px' }}>Teto Planejado</th>
+                  <th style={{ padding: '12px 16px' }}>Gasto Realizado</th>
+                  <th style={{ padding: '12px 16px' }}>Status</th>
                 </tr>
               </thead>
               <tbody>
                 {seasonality.map(m => (
-                  <tr key={`${m.sector}-${m.month}`} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '14px' }}>
-                    <td style={{ padding: '16px 12px', fontWeight: '600' }}>{m.month}</td>
-                    <td>
-                      <input 
-                        type="text" 
-                        value={editingValue[`${m.sector}-${m.month}`] !== undefined ? editingValue[`${m.sector}-${m.month}`] : maskCurrency(m.budget.toString())}
-                        onChange={(e) => setEditingValue({ ...editingValue, [`${m.sector}-${m.month}`]: maskCurrency(e.target.value) })}
-                        onBlur={(e) => {
-                          const val = parseCurrencyToNumber(e.target.value);
-                          handleUpdateSeasonality(m.month, val, m.sector);
-                        }}
-                        style={{ width: '120px', padding: '6px', fontSize: '13px' }}
-                      />
+                  <tr key={`${m.sector}-${m.month}`} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', fontSize: '14px' }}>
+                    <td style={{ padding: '16px', fontWeight: '600' }}>{m.month}</td>
+                    <td style={{ padding: '16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <input 
+                          type="text" 
+                          value={editingValue[`${m.sector}-${m.month}`] !== undefined ? editingValue[`${m.sector}-${m.month}`] : maskCurrency(m.budget.toString())}
+                          onChange={(e) => setEditingValue({ ...editingValue, [`${m.sector}-${m.month}`]: maskCurrency(e.target.value) })}
+                          onBlur={(e) => {
+                            const val = parseCurrencyToNumber(e.target.value);
+                            handleUpdateSeasonality(m.month, val, m.sector);
+                          }}
+                          style={{ width: '130px', padding: '6px 10px', fontSize: '13px' }}
+                        />
+                        <Edit3 size={14} style={{ color: 'var(--text-muted)', opacity: 0.5 }} />
+                      </div>
                     </td>
-
-                    <td>
-                      <span className="badge" style={{ 
+                    <td style={{ padding: '16px' }}>R$ {parseFloat(m.spent || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                    <td style={{ padding: '16px' }}>
+                      <span style={{ 
+                        padding: '4px 10px', 
+                        borderRadius: '20px', 
+                        fontSize: '11px',
+                        fontWeight: '700',
                         background: m.spent > m.budget ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
                         color: m.spent > m.budget ? '#ef4444' : '#10b981'
                       }}>
@@ -237,27 +275,15 @@ const BudgetManagement: React.FC<{ user: any }> = ({ user }) => {
         </div>
       )}
 
-      {(user.sector === 'TI' || user.role === 'FINANCE') && (
-        <div className="card">
-          <h3 style={{ marginBottom: '20px' }}>Consolidado Geral (Visão Financeiro)</h3>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px', height: '200px' }}>
-            {budgets.map(b => (
-               <div key={b.sector} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                 <div style={{ 
-                   width: '100%', 
-                   background: 'var(--primary)', 
-                   height: `${Math.min(100, (parseFloat(b.spent) / 80000) * 100)}%`, 
-                   borderRadius: '4px 4px 0 0',
-                   opacity: 0.8
-                 }}></div>
-                 <span style={{ fontSize: '10px', color: 'var(--text-muted)', textAlign: 'center' }}>{b.sector}</span>
-               </div>
-            ))}
-          </div>
-        </div>
-      )}
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 };
 
 export default BudgetManagement;
+

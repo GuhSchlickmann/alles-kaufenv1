@@ -3,6 +3,8 @@ import { Filter, Search, Plus, AlertCircle, FileText, Download, ExternalLink, Li
 import { format, getDate } from 'date-fns';
 import * as XLSX from 'xlsx';
 import { API_URL } from '../config';
+import { maskCurrency, parseCurrencyToNumber } from '../utils/currency';
+
 
 const PurchaseRequests: React.FC<{ 
   user: any, 
@@ -92,10 +94,11 @@ const PurchaseRequests: React.FC<{
     e.preventDefault();
     const payload = {
       ...formData,
-      amount: parseFloat(formData.amount),
+      amount: parseCurrencyToNumber(formData.amount),
       requestedBy: user.name,
       productLink: formData.productLink 
     };
+
 
     await fetch(`${API_URL}/purchases`, {
       method: 'POST',
@@ -140,6 +143,7 @@ const PurchaseRequests: React.FC<{
       'Produto': p.productName,
       'Setor': p.sector,
       'Valor (R$)': parseFloat(p.amount),
+
       'Vencimento': p.dueDate ? new Date(p.dueDate).toLocaleDateString() : '-',
       'Status': p.status,
       'Solicitado por': p.requestedBy,
@@ -279,7 +283,8 @@ const PurchaseRequests: React.FC<{
                   )}
                 </td>
                 <td>{req.sector}</td>
-                <td>R$ {parseFloat(req.amount).toLocaleString()}</td>
+                <td>R$ {parseFloat(req.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+
                 <td>{req.dueDate ? new Date(req.dueDate).toLocaleDateString() : '-'}</td>
                 <td>
                    <span style={{ 
@@ -386,12 +391,13 @@ const PurchaseRequests: React.FC<{
                 <div>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>Valor (R$)</label>
                   <input 
-                    type="number" 
+                    type="text" 
                     required 
                     value={formData.amount}
-                    onChange={e => setFormData({...formData, amount: e.target.value})}
+                    onChange={e => setFormData({...formData, amount: maskCurrency(e.target.value)})}
                     placeholder="0,00" 
                   />
+
                 </div>
                 <div>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>Setor</label>
@@ -542,8 +548,9 @@ const PurchaseRequests: React.FC<{
                 <div>
                   <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Valor</div>
                   <div style={{ fontWeight: '600', color: 'var(--primary)', fontSize: '18px' }}>
-                    R$ {parseFloat(showDetails.amount).toLocaleString()}
+                    R$ {parseFloat(showDetails.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </div>
+
                 </div>
                 <div>
                   <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Pagamento</div>

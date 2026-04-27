@@ -159,6 +159,7 @@ const Dashboard: React.FC<{ user: any }> = ({ user }) => {
                     itemStyle={{ fontSize: '12px' }}
                     formatter={(value: any) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)}
                   />
+
                   <Bar dataKey="budget" name="Planejado" fill="var(--primary)" radius={[4, 4, 0, 0]} barSize={20} />
                   <Bar dataKey="spent" name="Realizado" fill="var(--success)" radius={[4, 4, 0, 0]} barSize={20} />
                 </BarChart>
@@ -220,7 +221,8 @@ const Dashboard: React.FC<{ user: any }> = ({ user }) => {
               <tr key={row.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '14px' }}>
                 <td style={{ padding: '16px 0', fontWeight: '500' }}>{row.productName}</td>
                 <td>{row.sector}</td>
-                <td>R$ {parseFloat(row.amount).toLocaleString()}</td>
+                <td>R$ {parseFloat(row.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+
                 <td>
                   <span style={{ 
                     padding: '4px 8px', 

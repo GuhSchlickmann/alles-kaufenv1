@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Wallet, TrendingUp, AlertCircle, Save, Edit3, CheckCircle, PieChart as PieIcon } from 'lucide-react';
 import { API_URL } from '../config';
+import { maskCurrency, parseCurrencyToNumber } from '../utils/currency';
+
 
 const BudgetManagement: React.FC<{ user: any }> = ({ user }) => {
   const [budgets, setBudgets] = useState<any[]>([]);
@@ -41,11 +43,12 @@ const BudgetManagement: React.FC<{ user: any }> = ({ user }) => {
   const handleUpdateBudget = async (sector: string, type: 'monthly' | 'annual') => {
     const value = editingValue[sector]?.[type];
     
-    // Validação básica: não permitir vazio ou não numérico
-    if (!value || isNaN(parseFloat(value))) {
-      alert('Por favor, insira um valor numérico válido.');
+    // Validação básica: não permitir vazio
+    if (!value) {
+      alert('Por favor, insira um valor.');
       return;
     }
+
 
     try {
       const res = await fetch(`${API_URL}/budgets/update`, {
@@ -53,8 +56,9 @@ const BudgetManagement: React.FC<{ user: any }> = ({ user }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           sector, 
-          [type === 'monthly' ? 'monthly_budget' : 'annual_budget']: parseFloat(value) 
+          [type === 'monthly' ? 'monthly_budget' : 'annual_budget']: parseCurrencyToNumber(value) 
         })
+
       });
 
       if (res.ok) {
@@ -100,23 +104,25 @@ const BudgetManagement: React.FC<{ user: any }> = ({ user }) => {
               <div style={{ display: 'flex', gap: '24px', marginBottom: '20px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px' }}>
                 <div>
                   <p style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '4px' }}>Anual</p>
-                  <p style={{ fontWeight: '700', fontSize: '14px' }}>R$ {parseFloat(b.annual_budget || 0).toLocaleString()}</p>
+                  <p style={{ fontWeight: '700', fontSize: '14px' }}>R$ {parseFloat(b.annual_budget || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                 </div>
                 <div>
                   <p style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '4px' }}>Gasto</p>
-                  <p style={{ fontWeight: '700', fontSize: '14px' }}>R$ {parseFloat(b.spent || 0).toLocaleString()}</p>
+                  <p style={{ fontWeight: '700', fontSize: '14px' }}>R$ {parseFloat(b.spent || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                 </div>
+
               </div>
 
             <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
                 <input 
-                  type="number" 
+                  type="text" 
                   placeholder="Novo Anual" 
                   style={{ flex: 1, padding: '8px', fontSize: '12px' }}
                   value={editingValue[b.sector]?.annual || ''}
-                  onChange={e => setEditingValue({ ...editingValue, [b.sector]: { ...editingValue[b.sector], annual: e.target.value } })}
+                  onChange={e => setEditingValue({ ...editingValue, [b.sector]: { ...editingValue[b.sector], annual: maskCurrency(e.target.value) } })}
                 />
+
                 <button 
                   onClick={() => handleUpdateBudget(b.sector, 'annual')}
                   style={{ background: 'var(--success)', color: 'white', padding: '0 8px', fontSize: '11px', borderRadius: '4px' }}
@@ -136,8 +142,9 @@ const BudgetManagement: React.FC<{ user: any }> = ({ user }) => {
             }}>
               <span style={{ fontSize: '12px' }}>Previsão Próximo Mês:</span>
               <span style={{ fontWeight: '700', color: (b.spent * 1.1) > b.monthly_budget ? 'var(--warning)' : 'var(--success)' }}>
-                R$ {(b.spent * 1.1).toLocaleString()}
+                R$ {(b.spent * 1.1).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </span>
+
             </div>
           </div>
         ))}
@@ -176,14 +183,15 @@ const BudgetManagement: React.FC<{ user: any }> = ({ user }) => {
                   {isOver ? <AlertCircle size={16} /> : <CheckCircle size={16} />}
                   {seasonalTotal > annualTeto ? (
                     <span>
-                      <strong>Atenção:</strong> A soma dos meses (R$ {seasonalTotal.toLocaleString()}) <strong>EXCEDEU</strong> o teto anual de R$ {annualTeto.toLocaleString()}
+                      <strong>Atenção:</strong> A soma dos meses (R$ {seasonalTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}) <strong>EXCEDEU</strong> o teto anual de R$ {annualTeto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </span>
                   ) : (
                     <span>
-                      <strong>Planejamento OK:</strong> Soma dos meses (R$ {seasonalTotal.toLocaleString()}) está dentro do teto anual de R$ {annualTeto.toLocaleString()}
+                      <strong>Planejamento OK:</strong> Soma dos meses (R$ {seasonalTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}) está dentro do teto anual de R$ {annualTeto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </span>
                   )}
                 </div>
+
               );
             })()}
           </div>
@@ -202,12 +210,17 @@ const BudgetManagement: React.FC<{ user: any }> = ({ user }) => {
                     <td style={{ padding: '16px 12px', fontWeight: '600' }}>{m.month}</td>
                     <td>
                       <input 
-                        type="number" 
-                        defaultValue={m.budget}
-                        onBlur={(e) => handleUpdateSeasonality(m.month, parseFloat(e.target.value), m.sector)}
+                        type="text" 
+                        value={editingValue[`${m.sector}-${m.month}`] !== undefined ? editingValue[`${m.sector}-${m.month}`] : maskCurrency(m.budget.toString())}
+                        onChange={(e) => setEditingValue({ ...editingValue, [`${m.sector}-${m.month}`]: maskCurrency(e.target.value) })}
+                        onBlur={(e) => {
+                          const val = parseCurrencyToNumber(e.target.value);
+                          handleUpdateSeasonality(m.month, val, m.sector);
+                        }}
                         style={{ width: '120px', padding: '6px', fontSize: '13px' }}
                       />
                     </td>
+
                     <td>
                       <span className="badge" style={{ 
                         background: m.spent > m.budget ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',

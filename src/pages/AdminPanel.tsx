@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Shield, UserPlus, FolderPlus, Users, Layout, Save, Trash2, AlertCircle, TrendingUp, Key } from 'lucide-react';
 import { API_URL } from '../config';
+import { maskCurrency, parseCurrencyToNumber } from '../utils/currency';
+
 
 const AdminPanel: React.FC<{ user: any }> = ({ user }) => {
   const [users, setUsers] = useState<any[]>([]);
@@ -83,9 +85,10 @@ const AdminPanel: React.FC<{ user: any }> = ({ user }) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         sector: newSector.name, 
-        monthly_budget: parseFloat(newSector.monthly_budget),
-        annual_budget: parseFloat(newSector.annual_budget)
+        monthly_budget: parseCurrencyToNumber(newSector.monthly_budget),
+        annual_budget: parseCurrencyToNumber(newSector.annual_budget)
       })
+
     });
     setNewSector({ name: '', monthly_budget: '0', annual_budget: '0' });
     fetchData();
@@ -112,6 +115,27 @@ const AdminPanel: React.FC<{ user: any }> = ({ user }) => {
       }
     }
   };
+
+  const handleDeleteUser = async (username: string) => {
+    if (user.name !== 'Gustavo') {
+      alert('Apenas o Gustavo (TI) pode excluir usuários!');
+      return;
+    }
+
+    if (window.confirm(`Deseja realmente excluir o usuário "${username}"?`)) {
+      const res = await fetch(`${API_URL}/users/${username}`, {
+        method: 'DELETE'
+      });
+      
+      if (res.ok) {
+        fetchData();
+        alert('Usuário excluído com sucesso!');
+      } else {
+        alert('Erro ao excluir usuário.');
+      }
+    }
+  };
+
 
   if (user.sector !== 'TI') {
     return (
@@ -193,12 +217,13 @@ const AdminPanel: React.FC<{ user: any }> = ({ user }) => {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '13px', marginBottom: '6px', color: 'var(--text-muted)' }}>Budget Mensal (R$)</label>
-                <input type="number" required value={newSector.monthly_budget} onChange={e => setNewSector({...newSector, monthly_budget: e.target.value})} placeholder="0.00" />
+                <input type="text" required value={newSector.monthly_budget} onChange={e => setNewSector({...newSector, monthly_budget: maskCurrency(e.target.value)})} placeholder="0,00" />
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '13px', marginBottom: '6px', color: 'var(--text-muted)' }}>Budget Anual (R$)</label>
-                <input type="number" required value={newSector.annual_budget} onChange={e => setNewSector({...newSector, annual_budget: e.target.value})} placeholder="0.00" />
+                <input type="text" required value={newSector.annual_budget} onChange={e => setNewSector({...newSector, annual_budget: maskCurrency(e.target.value)})} placeholder="0,00" />
               </div>
+
             </div>
 
             <button type="submit" style={{ background: 'var(--success)', color: 'white', padding: '12px', fontWeight: 'bold', marginTop: '8px' }}>
@@ -228,8 +253,9 @@ const AdminPanel: React.FC<{ user: any }> = ({ user }) => {
               {sectors.map(s => (
                 <tr key={s.sector} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '14px' }}>
                   <td style={{ padding: '16px 12px', fontWeight: '600' }}>{s.sector}</td>
-                  <td>R$ {parseFloat(s.current_month_budget || 0).toLocaleString()}</td>
-                  <td>R$ {parseFloat(s.annual_budget || 0).toLocaleString()}</td>
+                  <td>R$ {parseFloat(s.current_month_budget || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                  <td>R$ {parseFloat(s.annual_budget || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+
                   <td style={{ textAlign: 'right' }}>
                     {user.name === 'Gustavo' && (
                       <button 

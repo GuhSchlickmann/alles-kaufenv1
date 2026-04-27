@@ -475,32 +475,8 @@ app.delete('/api/purchases/:id', async (req, res) => {
   res.json({ success: true });
 });
 
-// Rota de Reset Total (Apenas para uso inicial/limpeza)
-app.post('/api/admin/hard-reset', async (req, res) => {
-  const { confirmation } = req.body;
-  if (confirmation !== 'LIMPAR_TUDO') {
-    return res.status(403).json({ error: 'Confirmação inválida.' });
-  }
-
-  try {
-    await knex('purchases').delete();
-    await knex('notifications').delete();
-    await knex('budgets').update({ spent: 0 });
-    await knex('sector_seasonality').update({ spent: 0 });
-    await knex('users').update({ 
-      password: '123',
-      mustChangePassword: 1 
-    });
-    
-    console.log('--- SISTEMA ZERADO ---');
-    res.json({ success: true });
-  } catch (err) {
-    console.error('Erro no reset:', err);
-    res.status(500).json({ error: 'Erro ao zerar banco de dados.' });
-  }
-});
-
 app.use((req, res, next) => {
+
   if (req.path.startsWith('/api')) return next();
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });

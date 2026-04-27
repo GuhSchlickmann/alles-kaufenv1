@@ -417,6 +417,19 @@ app.post('/api/users', async (req, res) => {
   res.json({ success: true });
 });
 
+app.delete('/api/users/:username', async (req, res) => {
+  const { username } = req.params;
+  
+  // Evitar que o admin se exclua
+  if (username === 'gustavo') {
+    return res.status(400).json({ error: 'O Administrador principal não pode ser excluído.' });
+  }
+
+  await knex('users').where({ username }).delete();
+  res.json({ success: true });
+});
+
+
 app.get('/api/sectors', async (req, res) => {
   const sectors = await knex('budgets').select('sector');
   res.json(sectors);

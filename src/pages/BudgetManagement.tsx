@@ -249,8 +249,9 @@ const BudgetManagement: React.FC<{ user: any }> = ({ user }) => {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <input 
                           type="text" 
-                          value={editingValue[`${m.sector}-${m.month}`] !== undefined ? editingValue[`${m.sector}-${m.month}`] : maskCurrency(m.budget.toString())}
+                          value={editingValue[`${m.sector}-${m.month}`] !== undefined ? editingValue[`${m.sector}-${m.month}`] : maskCurrency((parseFloat(m.budget || 0) * 100).toFixed(0))}
                           onChange={(e) => setEditingValue({ ...editingValue, [`${m.sector}-${m.month}`]: maskCurrency(e.target.value) })}
+
                           onBlur={(e) => {
                             const val = parseCurrencyToNumber(e.target.value);
                             handleUpdateSeasonality(m.month, val, m.sector);

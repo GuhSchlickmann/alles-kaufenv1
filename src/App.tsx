@@ -120,7 +120,9 @@ const App: React.FC = () => {
           alignItems: 'center',
           gap: '12px'
         }}>
-          <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#334155' }}></div>
+          <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#334155', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '14px', color: 'white' }}>
+            {user.name.charAt(0)}
+          </div>
             <div style={{ flex: 1, overflow: 'hidden' }}>
               <div style={{ fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.name}</div>
               <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{user.sector}</div>
@@ -131,7 +133,21 @@ const App: React.FC = () => {
             onClick={() => setUser(null)}
           />
         </div>
+
+        <div style={{ 
+          marginTop: '16px', 
+          textAlign: 'center', 
+          fontSize: '10px', 
+          color: 'rgba(255,255,255,0.15)',
+          letterSpacing: '0.02em',
+          fontWeight: '500'
+        }}>
+          Desenvolvido por <span style={{ color: 'rgba(255,255,255,0.25)' }}>Gustavo Schlickmann</span>
+          <br />
+          Alles Park TI
+        </div>
       </aside>
+
 
       {/* Main Content */}
       <main style={{ flex: 1, overflowY: 'auto', padding: '32px' }}>
